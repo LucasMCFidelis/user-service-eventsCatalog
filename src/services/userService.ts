@@ -2,6 +2,7 @@ import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
 import { schemaId } from "../schemas/schemaId.js";
 import { schemaUserCadastre } from "../schemas/schemaUserCadastre.js";
 import { schemaUserPassword } from "../schemas/schemaUserPassword.js";
+import { schemaUserUpdate } from "../schemas/schemaUserUpdate.js";
 import { prisma } from "../utils/db/prisma.js";
 import { hashPassword } from "../utils/security/hashPassword.js";
 import { checkExistingUser } from "../utils/validators/checkExistingUser.js";
@@ -106,12 +107,12 @@ async function deleteUser(userId: string) {
   const user = await getUserById(userId);
 
   try {
-    // Deletar usuário 
+    // Deletar usuário
     await prisma.user.delete({
       where: {
-          userId
-      }
-  })
+        userId,
+      },
+    });
   } catch (error) {
     console.error("Erro ao deletar usuário", error);
     throw {
@@ -122,8 +123,52 @@ async function deleteUser(userId: string) {
   }
 }
 
+async function updateUser(userId: string, data: Partial<CadastreUser>) {
+  // Buscar o usuário no banco de dados
+  const user = await getUserById(userId);
+
+  // Valida o corpo da requisição com schemaUserUpdate
+  const userData = await schemaUserUpdate.validateAsync(data);
+  const { firstName, lastName, email, phoneNumber } = userData;
+
+  // Checa se o email já existe, exceto para o email atual do usuário
+  if (email !== user.email) {
+    const emailCheckResponse = await checkExistingUser(email);
+    if (emailCheckResponse.existingUser || emailCheckResponse.error) {
+      throw {
+        status: emailCheckResponse.status,
+        error: emailCheckResponse.error,
+        message: emailCheckResponse.message,
+      };
+    }
+  }
+
+  try {
+    // Atualiza o usuário no banco de dados
+    await prisma.user.update({
+      where: {
+        userId: user.userId,
+      },
+      data: {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+        ...(email && { email: email.toLowerCase() }),
+        ...(phoneNumber && { phoneNumber }),
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao atualizar usuário",
+      error: "Erro no servidor",
+    };
+  }
+}
+
 export const userService = {
   createUser,
   getUserById,
   deleteUser,
+  updateUser,
 };
