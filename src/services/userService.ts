@@ -31,16 +31,26 @@ async function createUser(data: CadastreUser) {
   // Criptografar a senha
   const hashedPassword = await hashPassword(password);
 
-  // Criar usuário no banco
-  const newUser = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email: email.toLowerCase(),
-      phoneNumber,
-      password: hashedPassword,
-    },
-  });
+  let newUser
+  try {
+    // Criar usuário no banco
+    newUser = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email: email.toLowerCase(),
+        phoneNumber,
+        password: hashedPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao criar usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao criar usuário",
+      error: "Erro no servidor",
+    };
+  }
 
   return {
     userId: newUser.userId,
@@ -55,19 +65,29 @@ async function getUserById(userId: string) {
   await schemaId.validateAsync({ id: userId });
 
   // Buscar o usuário no banco de dados com os campos necessários
-  const user = await prisma.user.findUnique({
-    where: {
-      userId,
-    },
-    select: {
-      userId: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phoneNumber: true,
-      role: true,
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        userId: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao buscar usuário",
+      error: "Erro no servidor",
+    };
+  }
 
   // Retornar mensagem de erro caso o usuário não seja encontrado
   if (!user) {
