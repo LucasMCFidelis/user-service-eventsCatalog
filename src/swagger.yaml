@@ -1,0 +1,803 @@
+openapi: 3.0.0
+info:
+  title: API de Gerenciamento de Eventos
+  description: Documentação da API usando Swagger
+  version: 1.0.0
+servers:
+- url: http://localhost:3333
+  description: Servidor local
+- url: https://api-catalogo-eventos.onrender.com
+  description: Servidor de produção
+tags:
+- name: Usuários
+  description: Operações de gerenciamento de usuários
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: ["Erro de validação","Erro no servidor","Erro Not Found","Erro de autorização","Erro de autenticação","Erro de Conflito"]
+          default: "Erro de validação"
+        message:
+          type: string
+          example: "Descrição do erro"
+    UserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        firstName:
+          type: string
+          example: "Carlos"
+        lastName:
+          type: string
+          example: "Araújo dos Santos"
+        email:
+          type: string
+          format: email
+          example: "carlos@example.com"
+        phoneNumber:
+          type: string
+          example: "33333333333"
+    UserRequestUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "Luiz"
+        lastName:
+          type: string
+          example: "Araújo"
+        email:
+          type: string
+          format: email
+          example: "luiz@example.com"
+        phoneNumber:
+          type: string
+          example: "43536373839"
+    UserRequestCreate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "Carlos"
+        lastName:
+          type: string
+          example: "Araújo dos Santos"
+        email:
+          type: string
+          format: email
+          example: "carlos@example.com"
+        phoneNumber:
+          type: string
+          example: "33333333333"
+        password:
+          type: string
+          example: "{Password@123"
+  examples:
+    ServerErrorExample:
+      summary: "Erro interno"
+      value:
+        error: "Erro no servidor"
+        message: "Erro interno ao realizar operação"
+    ErrorCheckUserExisting:
+      summary: "Erro durante a checagem de existência do usuário"
+      value:
+        error: "Erro no servidor"
+        message: "Erro ao verificar existência do usuário."
+    ErrorGetUser:
+      summary: "Erro interno na busca do usuário"
+      value:
+        error: "Erro no servidor"
+        message: "Erro interno ao buscar usuário"
+  responses:
+    ForbiddenErrorAdmin:
+      description: Permissão insuficiente para realizar a operação.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            access_denied:
+              summary: "Permissão insuficiente"
+              value:
+                error: "Erro de autorização"
+                message: "Permissão insuficiente. Requerido: Admin, atual: User"
+    ForbiddenErrorUser:
+      description: "Acesso negado. O usuário não tem permissão para interagir com este registro."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            access_denied:
+              summary: "Acesso negado"
+              value:
+                error: "Erro de autorização"
+                message: "Acesso negado. O ID do usuário logado não corresponde ao ID solicitado
+                  para a operação."
+    UserNotFound:
+      description: "Usuário não encontrado."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            user_not_found:
+              summary: "Usuário não encontrado"
+              value:
+                error: "Erro Not Found"
+                message: "Usuário não encontrado."
+    UserNotFoundByEmail:
+      description: Usuário não encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            user_not_found:
+              summary: "Usuário não encontrado"
+              value:
+                error: "Erro Not Found"
+                message: "Nenhum usuário encontrado com este email"
+
+paths:
+  /usuarios:
+    post:
+      summary: "Criar um novo usuário"
+      tags:
+      - "Usuários"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequestCreate'
+      responses:
+        '201':
+          description: "Usuário criado com sucesso."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: "Requisição inválida."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                undefined_firstName:
+                  summary: "firstName não foi fornecido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Nome é obrigatório"
+                invalid_firstName:
+                  summary: "firstName fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Nome deve ser uma string"
+                empty_firstName:
+                  summary: "firstName fornecido vazio ou apenas com espaços"
+                  value:
+                    error: "Erro de validação"
+                    message: "Nome não pode estar vazio"
+                must_curt_firstName:
+                  summary: "firstName fornecido foi muito curto"
+                  value:
+                    error: "Erro de validação"
+                    message: "Nome deve possuir no mínimo 3 caracteres"
+                invalid_caractere_firstName:
+                  summary: "firstName fornecido com caractere invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Nome deve conter apenas caracteres alfabéticos, acentuados e espaços"
+                undefined_lastName:
+                  summary: "lastName não foi fornecido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Sobrenome é obrigatório"
+                invalid_lastName:
+                  summary: "lastName fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Sobrenome deve ser uma string"
+                empty_lastName:
+                  summary: "lastName fornecido vazio ou apenas com espaços"
+                  value:
+                    error: "Erro de validação"
+                    message: "Sobrenome não pode estar vazio"
+                must_curt_lastName:
+                  summary: "lastName fornecido foi muito curto"
+                  value:
+                    error: "Erro de validação"
+                    message: "Sobrenome deve possuir no mínimo 5 caracteres"
+                invalid_caractere_lastName:
+                  summary: "lastName fornecido com caractere invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Sobrenome deve conter apenas caracteres alfabéticos, acentuados e espaços"
+                undefined_email:
+                  summary: "email não foi fornecido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email é obrigatório"
+                invalid_type_email:
+                  summary: "email fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser uma string"
+                invalid_email:
+                  summary: "email fornecido não tem formato valido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser um email válido"
+                empty_email:
+                  summary: "email fornecido vazio ou apenas com espaços"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email não pode estar vazio"
+                invalid_type_phonenumber:
+                  summary: "phoneNumber fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Telefone deve ser uma string"
+                invalid_phonenumber:
+                  summary: "phoneNumber fornecido não tem formato valido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Telefone deve começar com (+) e conter entre 10 e 15 dígitos numéricos"
+                undefined_password:
+                  summary: "password não foi fornecida"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha é obrigatória"
+                invalid_type_password:
+                  summary: "password fornecida com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha deve ser uma string"
+                empty_password:
+                  summary: "password fornecida vazia ou apenas com espaços"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha não pode estar vazia"
+                weak_password:
+                  summary: "password fornecida é fraca"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, um número e um caractere especial (!@#$&*)"
+        '409':
+          description: Conflito ao criar usuário com email já cadastrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                role_conflict:
+                  summary: "Tentar realizar cadastro com email já cadastrado"
+                  value:
+                    error: "Erro de Conflito"
+                    message: "Este e-mail já está cadastrado."
+        '500':
+          description: "Erro interno no servidor"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+                error_check_user:
+                  $ref: '#/components/examples/ErrorCheckUserExisting'
+
+  /usuarios/{id}:
+    get:
+      summary: "Recuperar um usuário específico pelo ID"
+      tags:
+      - "Usuários"
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: "ID do usuário a ser recuperado (formato UUID v4)."
+        schema:
+          type: string
+          example: "2aca17c6-b372-443c-8eff-70fe8d85100e"
+      responses:
+        '200':
+          description: "Usuário recuperado com sucesso."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: "Requisição inválida."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id_empty:
+                  summary: "ID vazio"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID não pode ser vazio."
+                invalid_id_format:
+                  summary: "ID em formato inválido"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID deve estar no formato de UUID v4."
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          description: "Erro interno no servidor"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error_get_user:
+                  $ref: '#/components/examples/ErrorGetUser'
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+
+    delete:
+      summary: "Deletar um usuário específico pelo ID."
+      tags:
+      - "Usuários"
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: "ID do usuário a ser deletado (formato UUID v4)."
+        schema:
+          type: string
+          example: "2aca17c6-b372-443c-8eff-70fe8d85100e"
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: "Usuário deletado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuário excluído com sucesso"
+        '400':
+          description: "Requisição inválida."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id_empty:
+                  summary: "ID vazio"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID não pode ser vazio."
+                invalid_id_format:
+                  summary: "ID em formato inválido"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID deve estar no formato de UUID v4."
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorUser'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          description: "Erro interno no servidor"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error_get_user:
+                  $ref: '#/components/examples/ErrorGetUser'
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+
+    put:
+      summary: "Atualizar as informações de um usuário específico pelo ID."
+      tags:
+      - "Usuários"
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: "ID do usuário a ser atualizado (formato UUID v4)."
+        schema:
+          type: string
+          example: "2aca17c6-b372-443c-8eff-70fe8d85100e"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequestUpdate'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: "Usuário atualizado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuário atualizado com sucesso"
+        '400':
+          description: "Requisição inválida."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id_empty:
+                  summary: "ID vazio"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID não pode ser vazio."
+                invalid_id_format:
+                  summary: "ID em formato inválido"
+                  value:
+                    error: "Erro de validação"
+                    message: "O ID deve estar no formato de UUID v4."
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorUser'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          description: "Erro interno no servidor"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error_get_user:
+                  $ref: '#/components/examples/ErrorGetUser'
+                error_check_user:
+                  $ref: '#/components/examples/ErrorCheckUserExisting'
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+
+  /usuarios/{id}/permissao:
+    put:
+      summary: "Atualiza a permissão de um usuário"
+      tags:
+      - "Usuários"
+      description: Esta rota permite que um administrador atualize a permissão de um
+        usuário existente.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID do usuário cuja permissão será atualizada.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newRole:
+                  type: string
+                  enum: [ Admin, User ]
+                  description: O novo papel que será atribuído ao usuário.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Permissão do usuário atualizada com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Permissão do usuário atualizada com sucesso, João agora é Admin"
+        '400':
+          description: Erro de validação ou entrada inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_role:
+                  summary: "Permissão informada não é valida"
+                  value:
+                    error: "Erro de validação"
+                    message: "Papel inválido. Somente 'Admin' ou 'User ' são aceitos."
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorAdmin'
+        '404':
+          description: Usuário ou papel não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                role_not_found:
+                  summary: "A permissão(role) fornecida não foi encontrada"
+                  value:
+                    error: "Erro Not Found"
+                    message: "Role não encontrada"
+                user_not_found:
+                  summary: "Usuário não encontrado"
+                  value:
+                    error: "Erro Not Found"
+                    message: "Usuário não encontrado."
+        '409':
+          description: Conflito ao tentar atualizar a permissão para um papel já existente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                role_conflict:
+                  summary: "A permissão(role) fornecida não foi encontrada"
+                  value:
+                    error: "Erro de Conflito"
+                    message: "O usuário João já possui a permissão Admin"
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+                error_get_role:
+                  summary: "Erro durante a busca de role"
+                  value:
+                    error: "Erro no servidor"
+                    message: "Erro ao buscar a role"
+
+  /usuarios/recuperacao/enviar-codigo:
+    post:
+      summary: "Envia código para recuperação de senha"
+      tags:
+      - "Usuários"
+      description: Esta rota permite que o usuário receba um código no seu email, para
+        que possa ser utilizado em outra rota como validação antes da
+        redefinição de senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "carlos@example.com"
+      responses:
+        '200':
+          description: Código foi enviado para o email informado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Código de recuperação enviado para o seu e-mail"
+        '400':
+          description: Erro de validação ou entrada inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_email:
+                  summary: "Email fornecido não tem formato valido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser um email válido"
+                invalid_type_email:
+                  summary: "Email fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser uma string"
+        '404':
+          $ref: '#/components/responses/UserNotFoundByEmail'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+                error_get_user:
+                  summary: "Erro interno durante a busca do usuário"
+                  value:
+                    error: "Erro no servidor"
+                    message: "Erro interno ao buscar usuário"
+
+  /usuarios/recuperacao/atualizar-senha:
+    post:
+      summary: "Atualiza senha do usuário"
+      tags:
+      - "Usuários"
+      description: Esta rota permite que o usuário atualize sua senha, usando como validação um código recebido por email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "carlos@example.com"
+                newPassword:
+                  type: string
+                  example: "p3@Paulowww"
+                recoveryCode:
+                  type: string
+                  example: "3oPs99"
+      responses:
+        '200':
+          description: A senha do usuário foi devidamente atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Senha atualizada com sucesso"
+        '400':
+          description: Erro de validação ou entrada inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_email:
+                  summary: "Email fornecido não tem formato valido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser um email válido"
+                invalid_type_email:
+                  summary: "Email fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser uma string"
+                empty_password:
+                  summary: "Fornecer a senha vazia ou apenas com espaços"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha não pode estar vazia"
+                weak_password:
+                  summary: "Fornecer uma senha fraca"
+                  value:
+                    error: "Erro de validação"
+                    message: "Senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, um número e um caractere especial (!@#$&*)"
+                invalid_recovery_code:
+                  summary: "Fornecer um código de validação invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Código de recuperação inválido" 
+                expired-recovery_code:
+                  summary: "Fornecer um código de validação expirado"
+                  value:
+                    error: "Erro de validação"
+                    message: "Código de recuperação expirado" 
+        '404':
+          $ref: '#/components/responses/UserNotFoundByEmail'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  $ref: '#/components/examples/ServerErrorExample'
+                error_get_user:
+                  summary: "Erro interno durante a busca do usuário"
+                  value:
+                    error: "Erro no servidor"
+                    message: "Erro interno ao buscar usuário"
+                error_validate_code:
+                  summary: "Erro interno durante a validação do código"
+                  value:
+                    error: "Erro no servidor"
+                    message: "Erro ao validar o código de recuperação" 
+
+  /usuarios/login:
+    post:
+      summary: "Realizar login do usuário"
+      tags:
+      - "Usuários"
+      description: Esta rota permite que o usuário envie seus dados de login para entrar na plataforma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "carlos@example.com"
+                passwordProvided:
+                  type: string
+                  example: "p3@Paulowww"
+      responses:
+        '200':
+          description: A senha do usuário foi devidamente atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDRhMmUyOS00MWI1LTQ0MTUtOWI1MC1hMmQxY2I1ODQ5MWIiLCJlbWFpbCI6Impvc2VAZXhhbXBsZS5jb20iLCJyb2xlTmFtZSI6IlVzZXIiLCJpYXQiOjE3MzIwMjExMTUsImV4cCI6MTczMjAyNDcxNX0.QnOJa0B89Rg1RZUIZ-DTulstLLRElG_oVKWbJeXABsk"
+                  message:
+                    type: string
+                    example: "Login bem-sucedido"
+        '400':
+          description: Erro de validação ou entrada inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_email:
+                  summary: "Email fornecido não tem formato valido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser um email válido"
+                invalid_type_email:
+                  summary: "Email fornecido com um tipo invalido"
+                  value:
+                    error: "Erro de validação"
+                    message: "Email deve ser uma string"
+        '401':
+          description: Credenciais não condizem com as armazenadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_credentials:
+                  summary: "Credenciais inválidas"
+                  value:
+                    error: "Erro de autenticação"
+                    message: "Credenciais inválidas"
+        '404':
+          $ref: '#/components/responses/UserNotFoundByEmail'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error_login:
+                  summary: "Erro interno ao realizar o login do usuário"
+                  value:
+                    error: "Erro no servidor"
+                    message: "Erro ao realizar login"

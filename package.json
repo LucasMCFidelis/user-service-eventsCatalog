@@ -1,0 +1,36 @@
+{
+  "name": "user_microservice",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/server.js",
+    "dev": "tsx --watch --no-warnings src/server.js",
+    "build": "tsup src/server.ts --out-dir dist --dts --format esm --clean && cpy src/swagger.yaml dist/ --flat"
+  },
+  "prisma": {
+    "seed": "tsx src/utils/db/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^5.2.0",
+    "@prisma/client": "^6.2.1",
+    "bcrypt": "^5.1.1",
+    "fastify": "^5.2.1",
+    "joi": "^17.13.3",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "prisma": "^6.2.1",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
