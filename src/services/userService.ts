@@ -31,7 +31,7 @@ async function createUser(data: CadastreUser) {
   // Criptografar a senha
   const hashedPassword = await hashPassword(password);
 
-  let newUser
+  let newUser;
   try {
     // Criar usuário no banco
     newUser = await prisma.user.create({
@@ -101,7 +101,29 @@ async function getUserById(userId: string) {
   return user;
 }
 
+async function deleteUser(userId: string) {
+  // Buscar o usuário no banco de dados
+  const user = await getUserById(userId);
+
+  try {
+    // Deletar usuário 
+    await prisma.user.delete({
+      where: {
+          userId
+      }
+  })
+  } catch (error) {
+    console.error("Erro ao deletar usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao deletar usuário",
+      error: "Erro no servidor",
+    };
+  }
+}
+
 export const userService = {
   createUser,
   getUserById,
+  deleteUser,
 };

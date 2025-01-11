@@ -20,3 +20,12 @@ export async function getUserByIdRoute(req: FastifyRequest<{ Params: { id: strin
         return handleError(error, reply);
     }
 }
+
+export async function deleteUserRoute(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    try {
+        await userService.deleteUser(req.params.id);
+        return reply.status(204).send({ message: 'Usuário excluído com sucesso' });
+    } catch (error) {
+        return handleError(error, reply);
+    }
+}
