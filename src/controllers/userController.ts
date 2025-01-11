@@ -11,3 +11,12 @@ export async function createUserRoute(req: FastifyRequest<{Body: CadastreUser}>,
         return handleError(error, reply);
     }
 }
+
+export async function getUserByIdRoute(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    try {
+        const user = await userService.getUserById(req.params.id);
+        return reply.status(200).send(user);
+    } catch (error) {
+        return handleError(error, reply);
+    }
+}

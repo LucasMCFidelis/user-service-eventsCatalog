@@ -27,6 +27,7 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^22.10.5",
     "prisma": "^6.2.1",
     "tsup": "^8.3.5",

@@ -1,4 +1,5 @@
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
+import { schemaId } from "../schemas/schemaId.js";
 import { schemaUserCadastre } from "../schemas/schemaUserCadastre.js";
 import { schemaUserPassword } from "../schemas/schemaUserPassword.js";
 import { prisma } from "../utils/db/prisma.js";
@@ -50,6 +51,37 @@ async function createUser(data: CadastreUser) {
   };
 }
 
+async function getUserById(userId: string) {
+  await schemaId.validateAsync({ id: userId });
+
+  // Buscar o usuário no banco de dados com os campos necessários
+  const user = await prisma.user.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      userId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phoneNumber: true,
+      role: true,
+    },
+  });
+
+  // Retornar mensagem de erro caso o usuário não seja encontrado
+  if (!user) {
+    throw {
+      status: 404,
+      message: "Usuário não encontrado",
+      error: "Erro Not Found",
+    };
+  }
+
+  return user;
+}
+
 export const userService = {
-  createUser
+  createUser,
+  getUserById,
 };
