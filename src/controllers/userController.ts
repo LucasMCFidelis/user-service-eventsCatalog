@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { userService } from "../services/userService.js";
 import { handleError } from "../utils/handlers/handleError.js";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
+import { LoginUser } from "../interfaces/loginUserInterface.js";
 
 export async function createUserRoute(request: FastifyRequest<{Body: CadastreUser}>, reply: FastifyReply) {
     try {
@@ -47,6 +48,17 @@ export async function updateUserPasswordRoute(request: FastifyRequest<{Body: {
     try {
         await userService.updateUserPassword(request.body);
         return reply.status(200).send({ message: 'Senha atualizada com sucesso' });
+    } catch (error) {
+        return handleError(error, reply);
+    }
+}
+
+export async function validateUserCredentialsRoute(request: FastifyRequest<{Body:
+    LoginUser
+  }>, reply: FastifyReply) {
+    try {
+        const validatedUser = await userService.validateUserCredentials(request.body);
+        return reply.status(200).send(validatedUser);
     } catch (error) {
         return handleError(error, reply);
     }

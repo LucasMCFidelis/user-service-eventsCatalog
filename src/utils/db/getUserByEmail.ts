@@ -11,7 +11,7 @@ interface UserAutentication {
 }
 
 interface GetUserResponse extends GetResponse {
-    data?: UserAutentication
+    data: UserAutentication | null
 }
 
 export async function getUserByEmail(userEmail: string): Promise<GetUserResponse> {
@@ -19,9 +19,7 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
     try {
         await schemaUserUpdate.validateAsync({ email: userEmail })
     } catch (error: any) {
-        console.log('aqui');
-        
-        return {
+        throw {
             status: 400,
             message: error.message.toLowerCase(),
             error: "Erro de validação",
@@ -29,9 +27,10 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
         }
     }
 
+    let user
     try {
         // Buscar usuário no banco de dados com base no email fornecido
-        const user = await prisma.user.findUnique({
+        user = await prisma.user.findUnique({
             where: {
                 email: userEmail.toLowerCase()
             },
@@ -49,16 +48,7 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
             }
         })
 
-        // Retorno caso o usuário não seja encontrado
-        if (!user) {
-            return {
-                status: 404,
-                message: "Nenhum usuário encontrado com este email",
-                error: "Erro Not Found",
-                data: undefined
-            }
-        }
-
+        
         // Retorno bem-sucedido com os dados do usuário
         return {
             status: 200,
@@ -68,7 +58,17 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
         }
     } catch (error) {
         console.error("Erro ao buscar usuário", error)
-        return {
+        // Retorno caso o usuário não seja encontrado
+        if (!user) {
+            throw {
+                status: 404,
+                message: "Nenhum usuário encontrado com este email",
+                error: "Erro Not Found",
+                data: undefined
+            }
+        }
+
+        throw {
             status: 500,
             message: "Erro interno ao buscar usuário",
             error: "Erro no servidor",

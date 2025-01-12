@@ -1,5 +1,5 @@
 export interface UserTokenInterfaceProps {
     userId: string
-    email: string
+    userEmail: string
     roleName: string
 }

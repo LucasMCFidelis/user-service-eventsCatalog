@@ -9,6 +9,9 @@ import { getUserByEmail } from "../utils/db/getUserByEmail.js";
 import { prisma } from "../utils/db/prisma.js";
 import { hashPassword } from "../utils/security/hashPassword.js";
 import { checkExistingUser } from "../utils/validators/checkExistingUser.js";
+import { LoginUser } from "../interfaces/loginUserInterface.js";
+import { comparePasswords } from "../utils/security/comparePasswords.js";
+import { UserTokenInterfaceProps } from "../interfaces/UserTokenInterfaceProps.js";
 
 const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
 
@@ -232,10 +235,40 @@ async function validateRecoveryCode({
   });
 }
 
+async function validateUserCredentials(data: LoginUser): Promise<UserTokenInterfaceProps> {
+  const userResponse = await getUserByEmail(data.userEmail);
+  if (!userResponse.data || userResponse.error) {
+    throw {
+      status: userResponse.status,
+      message: "Usuário não encontrado",
+      error: userResponse.error,
+    };
+  }
+
+  const isPasswordValid = await comparePasswords(
+    data.passwordProvided,
+    userResponse.data.password
+  );
+  if (!isPasswordValid) {
+    throw {
+      status: 401,
+      message: "Senha inválida",
+      error: "Erro de autenticação"
+    };
+  }
+
+  return {
+    userId: userResponse.data.userId,
+    userEmail: userResponse.data.email,
+    roleName: userResponse.data.role.roleName
+  }
+}
+
 export const userService = {
   createUser,
   getUserById,
   deleteUser,
   updateUser,
   updateUserPassword,
+  validateUserCredentials,
 };
