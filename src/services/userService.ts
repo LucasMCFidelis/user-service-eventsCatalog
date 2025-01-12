@@ -1,11 +1,16 @@
+import axios from "axios";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
+import { CodeValidationProps } from "../interfaces/CodeValidationProps.js";
 import { schemaId } from "../schemas/schemaId.js";
 import { schemaUserCadastre } from "../schemas/schemaUserCadastre.js";
 import { schemaUserPassword } from "../schemas/schemaUserPassword.js";
 import { schemaUserUpdate } from "../schemas/schemaUserUpdate.js";
+import { getUserByEmail } from "../utils/db/getUserByEmail.js";
 import { prisma } from "../utils/db/prisma.js";
 import { hashPassword } from "../utils/security/hashPassword.js";
 import { checkExistingUser } from "../utils/validators/checkExistingUser.js";
+
+const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
 
 async function createUser(data: CadastreUser) {
   const { firstName, lastName, email, phoneNumber, password } = data;
@@ -166,9 +171,71 @@ async function updateUser(userId: string, data: Partial<CadastreUser>) {
   }
 }
 
+async function updateUserPassword(data: {
+  email: string;
+  newPassword: string;
+  recoveryCode: string;
+}) {
+  // Extrair email e senha fornecida do corpo da requisição
+  const { email, newPassword, recoveryCode } = data;
+
+  // Buscar o usuário no banco de dados utilizando a função utilitária
+  const userResponse = await getUserByEmail(email);
+  const user = userResponse.data;
+  if (!user || userResponse.error) {
+    throw {
+      status: userResponse.status,
+      error: userResponse.error,
+      message: userResponse.message,
+    };
+  }
+
+  await validateRecoveryCode({
+    userEmail: email,
+    recoveryCode,
+  });
+
+  // Validar a nova senha com o schemaUserPassword para que a senha seja segura
+  await schemaUserPassword.validateAsync({ password: newPassword });
+
+  try {
+    // Gerar o hash da nova senha fornecida
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Atualizar o usuário com a nova senha
+    await prisma.user.update({
+      where: {
+        userId: user.userId,
+      },
+      data: {
+        password: newPasswordHash,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar senha do usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao atualizar senha do usuário",
+      error: "Erro no servidor",
+    };
+  }
+}
+
+async function validateRecoveryCode({
+  userEmail,
+  recoveryCode,
+}: CodeValidationProps): Promise<void> {
+  // Realiza a chamada para a API do emailService
+  return await axios.post(`${emailServiceUrl}/validate-recovery-code`, {
+    userEmail,
+    recoveryCode,
+  });
+}
+
 export const userService = {
   createUser,
   getUserById,
   deleteUser,
   updateUser,
+  updateUserPassword,
 };

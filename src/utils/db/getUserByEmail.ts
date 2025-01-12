@@ -19,6 +19,8 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
     try {
         await schemaUserUpdate.validateAsync({ email: userEmail })
     } catch (error: any) {
+        console.log('aqui');
+        
         return {
             status: 400,
             message: error.message.toLowerCase(),

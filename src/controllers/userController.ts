@@ -38,3 +38,16 @@ export async function updateUserRoute(request: FastifyRequest<{ Params: { id: st
         return handleError(error, reply);
     }
 }
+
+export async function updateUserPasswordRoute(request: FastifyRequest<{Body: {
+    email: string;
+    newPassword: string;
+    recoveryCode: string;
+  }; }>, reply: FastifyReply) {
+    try {
+        await userService.updateUserPassword(request.body);
+        return reply.status(200).send({ message: 'Senha atualizada com sucesso' });
+    } catch (error) {
+        return handleError(error, reply);
+    }
+}
