@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { ErrorResponse } from '../../types/errorResponseType.js'
+import { ErrorResponse } from '../types/errorResponseType.js'
 
 export function authorizeUserById(targetUserId: string) {
     return (request: FastifyRequest, reply: FastifyReply) => {       
