@@ -48,6 +48,9 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
             }
         })
 
+        if (!user){
+            throw {}
+        }
         
         // Retorno bem-sucedido com os dados do usuário
         return {

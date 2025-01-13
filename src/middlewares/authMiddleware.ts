@@ -7,7 +7,7 @@ export async function authMiddleware(
 ) {
   const authorizationHeader = request.headers.authorization;
   if (!authorizationHeader) {
-    return reply.status(401).send({ message: "Token não fornecido" });
+    throw reply.status(401).send({ message: "Token não fornecido", error: "Erro de autenticação", });
   }
 
   const token = authorizationHeader.replace("Bearer ", "");
@@ -26,6 +26,7 @@ export async function authMiddleware(
 
     // Validação bem-sucedida: anexa os dados do usuário ao request
     request.user = response.data.decoded;
+    
   } catch (error) {
     // Garantia de tipo para `error`
     if (axios.isAxiosError(error)) {
@@ -33,14 +34,14 @@ export async function authMiddleware(
         const errorMessage =
           error.response?.data?.message || "Erro ao validar token";
   
-        return reply.status(statusCode).send({
+        throw reply.status(statusCode).send({
           message: errorMessage,
           error: "Autenticação falhou",
         });
       }
   
       // Tratamento genérico para erros desconhecidos
-      return reply.status(500).send({
+      throw reply.status(500).send({
         message: "Erro interno ao validar token",
         error: "Erro desconhecido",
       });
