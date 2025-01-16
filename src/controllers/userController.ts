@@ -3,8 +3,6 @@ import { userService } from "../services/userService.js";
 import { handleError } from "../utils/handlers/handleError.js";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
 import { LoginUser } from "../interfaces/loginUserInterface.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js";
-import { authorizeUserById } from "../middlewares/authorizeUserById.js";
 
 export async function createUserRoute(
   request: FastifyRequest<{ Body: CadastreUser }>,
