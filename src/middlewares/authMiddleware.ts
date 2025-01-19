@@ -36,14 +36,14 @@ export async function authMiddleware(
   
         throw reply.status(statusCode).send({
           message: errorMessage,
-          error: "Autenticação falhou",
+          error: "Erro de autenticação",
         });
       }
   
       // Tratamento genérico para erros desconhecidos
       throw reply.status(500).send({
         message: "Erro interno ao validar token",
-        error: "Erro desconhecido",
+        error: "Erro no servidor",
       });
   }
 }
