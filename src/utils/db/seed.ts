@@ -109,8 +109,10 @@ async function seedAdmins() {
 
 async function main() {
   try {
-    await seedRoles();
-    await seedAdmins();
+    await Promise.all([
+      seedRoles(),
+      seedAdmins()
+    ])
     console.log("Seed executado com sucesso.");
   } catch (error: any) {
     console.error("Erro durante a execução do seed:", error.message);
