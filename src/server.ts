@@ -40,7 +40,7 @@ server.register(swaggerUi, {
 });
 
 // Registrar rotas de usuários com prefixo
-server.register(userRoutes, { prefix: "/usuarios" });
+server.register(userRoutes, { prefix: "/users" });
 
 // Configurar a porta e host
 const PORT = Number(process.env.PORT) || 3333;

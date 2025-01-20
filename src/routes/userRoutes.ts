@@ -12,17 +12,17 @@ import { authorizeUserById } from "../middlewares/authorizeUserById.js";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
 
 export async function userRoutes(server: FastifyInstance) {
-  server.post("/", createUserRoute); // POST /usuarios
+  server.post("/", createUserRoute); // POST /users
   server.get<{ Params: { id: string } }>(
     "/:id",
     { preHandler: [authMiddleware, authorizeUserById] },
     getUserByIdRoute
-  ); // GET /usuarios/{id}
+  ); // GET /users/{id}
   server.delete<{ Params: { id: string } }>(
     "/:id",
     { preHandler: [authMiddleware, authorizeUserById] },
     deleteUserRoute
-  ); // DELETE /usuarios/{id}
+  ); // DELETE /users/{id}
   server.put<{
     Params: { id: string };
     Body: Partial<CadastreUser>;
@@ -30,7 +30,7 @@ export async function userRoutes(server: FastifyInstance) {
     "/:id",
     { preHandler: [authMiddleware, authorizeUserById] },
     updateUserRoute
-  ); // PUT /usuarios/{id}
-  server.patch("/recuperacao/atualizar-senha", updateUserPasswordRoute); // PATCH usuarios/recuperacao/atualizar-senha
-  server.post("/validate-credentials", validateUserCredentialsRoute); // POST /usuarios/validate-credentials
+  ); // PUT /users/{id}
+  server.patch("/recuperacao/atualizar-senha", updateUserPasswordRoute); // PATCH users/recuperacao/atualizar-senha
+  server.post("/validate-credentials", validateUserCredentialsRoute); // POST /users/validate-credentials
 }
