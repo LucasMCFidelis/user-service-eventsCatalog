@@ -70,7 +70,7 @@ async function createUser(data: CadastreUser) {
   };
 }
 
-async function getUserById(userId: string) {
+async function getUserById(userId: string, includeFavorites: boolean = false) {
   await schemaId.validateAsync({ id: userId });
 
   // Buscar o usuário no banco de dados com os campos necessários
@@ -87,6 +87,7 @@ async function getUserById(userId: string) {
         email: true,
         phoneNumber: true,
         role: true,
+        eventFavorites: includeFavorites
       },
     });
   } catch (error) {
