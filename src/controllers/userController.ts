@@ -17,11 +17,11 @@ export async function createUserRoute(
 }
 
 export async function getUserByIdRoute(
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: { userId: string } }>,
   reply: FastifyReply
 ) {
   try {
-    const user = await userService.getUserById(request.params.id);
+    const user = await userService.getUserById(request.params.userId);
     return reply.status(200).send(user);
   } catch (error) {
     return handleError(error, reply);
@@ -29,11 +29,11 @@ export async function getUserByIdRoute(
 }
 
 export async function deleteUserRoute(
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: { userId: string } }>,
   reply: FastifyReply
 ) {
   try {
-    await userService.deleteUser(request.params.id);
+    await userService.deleteUser(request.params.userId);
     return reply.status(200).send({ message: "Usuário excluído com sucesso" });
   } catch (error) {
     return handleError(error, reply);
@@ -42,13 +42,13 @@ export async function deleteUserRoute(
 
 export async function updateUserRoute(
   request: FastifyRequest<{
-    Params: { id: string };
+    Params: { userId: string };
     Body: Partial<CadastreUser>;
   }>,
   reply: FastifyReply
 ) {
   try {
-    await userService.updateUser(request.params.id, request.body);
+    await userService.updateUser(request.params.userId, request.body);
     return reply
       .status(200)
       .send({ message: "Usuário atualizado com sucesso" });

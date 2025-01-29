@@ -20,3 +20,12 @@ export async function listFavoritesRoute(request:FastifyRequest<{Params: {userId
         handleError(error, reply)
     }
 }
+
+export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {favoriteId: string}}>, reply: FastifyReply) {
+    try {
+        const eventFavorite = await favoriteService.getFavoriteById(request.params.favoriteId)
+        return reply.status(200).send(eventFavorite)
+    } catch (error) {
+        handleError(error, reply)
+    }
+}
