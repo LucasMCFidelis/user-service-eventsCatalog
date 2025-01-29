@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { handleError } from "../utils/handlers/handleError.js";
 import { favoriteService } from "../services/favoriteService.js";
 import { Favorite } from "@prisma/client";
+import { userService } from "../services/userService.js";
 
 export async function createFavoriteRoute(request:FastifyRequest<{Params: {userId: string}, Body: Favorite}>, reply: FastifyReply) {
     try {
@@ -21,8 +22,9 @@ export async function listFavoritesRoute(request:FastifyRequest<{Params: {userId
     }
 }
 
-export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {favoriteId: string}}>, reply: FastifyReply) {
+export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {userId: string, favoriteId: string}}>, reply: FastifyReply) {
     try {
+        await userService.getUserById(request.params.userId)
         const eventFavorite = await favoriteService.getFavoriteById(request.params.favoriteId)
         return reply.status(200).send(eventFavorite)
     } catch (error) {
