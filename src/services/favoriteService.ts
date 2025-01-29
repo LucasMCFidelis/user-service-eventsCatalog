@@ -89,7 +89,7 @@ async function getFavoriteById(favoriteId: string) {
 
   let favorite;
   try {
-    favorite = prisma.favorite.findUnique({ where: { favoriteId } });
+    favorite = await prisma.favorite.findUnique({ where: { favoriteId } });
   } catch (error) {
     console.error("Erro ao buscar favorito pelo id");
     throw {
@@ -107,7 +107,14 @@ async function getFavoriteById(favoriteId: string) {
     };
   }
 
-  return favorite;
+  const eventFavorite = await getEventById(favorite.eventFavoriteId)
+
+  return {
+    favoriteId: favorite.favoriteId,
+    userFavoriteId: favorite.userFavoriteId,
+    createdAt: favorite.createdAt,
+    eventFavorite
+  };
 }
 
 async function updateFavorite(favoriteId: string, data: any) {}
