@@ -1,13 +1,14 @@
 import { schemaUserCadastre } from "../../schemas/schemaUserCadastre.js";
 import { schemaUserPassword } from "../../schemas/schemaUserPassword.js";
 import { schemaUserRole } from "../../schemas/schemaUserRole.js";
+import { roleService } from "../../services/roleService.js";
 import { hashPassword } from "../security/hashPassword.js";
 import { getRoleByName } from "./getRoleByName.js";
 import { prisma } from "./prisma.js";
 
 async function seedRoles() {
   console.log("Iniciando seedRoles...");
-  const existingRoles = await prisma.role.findFirst();
+  const existingRoles = await roleService.listRoles()
   if (existingRoles) {
     console.log("Roles já foram criados.");
     return;
@@ -29,16 +30,7 @@ async function seedRoles() {
 
   for (const role of userRoles) {
     try {
-      await schemaUserRole.validateAsync(role);
-
-      await prisma.role.create({
-        data: {
-          ...(role.roleId && { roleId: role.roleId }),
-          roleName: role.roleName,
-          ...(role.roleDescription && { roleDescription: role.roleDescription }),
-        },
-      });
-
+      await roleService.createRole(role)
       console.log(`Role "${role.roleName}" criada.`);
     } catch (error: any) {
       console.error("Erro ao criar role:", error.message);

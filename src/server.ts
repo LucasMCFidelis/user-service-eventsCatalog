@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "@fastify/cors";
 import { favoriteRoutes } from "./routes/favoriteRoutes.js";
+import { roleRoutes } from "./routes/roleRoutes.js";
 
 // Obter o diretório atual
 const __filename = fileURLToPath(import.meta.url);
@@ -43,6 +44,7 @@ server.register(swaggerUi, {
 // Registrar rotas de usuários com prefixo
 server.register(userRoutes, { prefix: "/users" });
 server.register(favoriteRoutes, { prefix: "/favorites" });
+server.register(roleRoutes, { prefix: "/roles" });
 
 // Configurar a porta e host
 const PORT = Number(process.env.PORT) || 3333;
