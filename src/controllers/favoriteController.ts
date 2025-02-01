@@ -32,7 +32,7 @@ export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {user
     }
 }
 
-export async function deleteFavoriteRoute(request:FastifyRequest<{Params: {favoriteId: string}}>, reply: FastifyReply) {
+export async function deleteFavoriteRoute(request:FastifyRequest<{Params: {userId: string, favoriteId: string}}>, reply: FastifyReply) {
     try {
         await favoriteService.deleteFavorite(request.params.favoriteId)
         return reply.status(200).send({message: "Favorito excluído com sucesso"})

@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import {
   createFavoriteRoute,
+  deleteFavoriteRoute,
   getFavoriteByIdRoute,
   listFavoritesRoute,
 } from "../controllers/favoriteController.js";
@@ -23,5 +24,10 @@ export async function favoriteRoutes(server: FastifyInstance) {
     "/:userId/:favoriteId",
     { preHandler: [authMiddleware, authorizeUserById] },
     getFavoriteByIdRoute
+  );
+  server.delete<{ Params: { userId: string; favoriteId: string } }>(
+    "/:userId/:favoriteId",
+    { preHandler: [authMiddleware, authorizeUserById] },
+    deleteFavoriteRoute
   );
 }
