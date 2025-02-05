@@ -29,6 +29,6 @@ export async function authMiddleware(
     request.user = response.data.decoded;
     
   } catch (error) {
-    handleAxiosError(error, reply)
+    handleAxiosError(error)
   }
 }

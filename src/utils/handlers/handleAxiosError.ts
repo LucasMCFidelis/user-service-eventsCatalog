@@ -1,5 +1,4 @@
 import axios from "axios";
-import { FastifyReply } from "fastify";
 
 export function handleAxiosError(error: unknown) {
   // Garantia de tipo para `error`

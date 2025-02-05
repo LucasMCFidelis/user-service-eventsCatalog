@@ -15,7 +15,7 @@ export async function userRoutes(server: FastifyInstance) {
   server.post("/", createUserRoute); // POST /users
   server.get<{ Params: { userId: string } }>(
     "/:userId",
-    { preHandler: [authMiddleware, authorizeUserById] },
+    { preHandler: [authMiddleware] },
     getUserByIdRoute
   ); // GET /users/{id}
   server.delete<{ Params: { userId: string } }>(
