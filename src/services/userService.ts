@@ -253,7 +253,7 @@ async function validateUserCredentials(data: LoginUser): Promise<UserTokenInterf
   if (!isPasswordValid) {
     throw {
       status: 401,
-      message: "Senha inválida",
+      message: "Credenciais inválidas",
       error: "Erro de autenticação"
     };
   }
