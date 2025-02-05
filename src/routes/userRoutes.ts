@@ -14,12 +14,12 @@ import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
 export async function userRoutes(server: FastifyInstance) {
   server.post("/", createUserRoute); // POST /users
   server.get<{ Params: { userId: string } }>(
-    "/:id",
+    "/:userId",
     { preHandler: [authMiddleware, authorizeUserById] },
     getUserByIdRoute
   ); // GET /users/{id}
   server.delete<{ Params: { userId: string } }>(
-    "/:id",
+    "/:userId",
     { preHandler: [authMiddleware, authorizeUserById] },
     deleteUserRoute
   ); // DELETE /users/{id}
@@ -27,7 +27,7 @@ export async function userRoutes(server: FastifyInstance) {
     Params: { userId: string };
     Body: Partial<CadastreUser>;
   }>(
-    "/:id",
+    "/:userId",
     { preHandler: [authMiddleware, authorizeUserById] },
     updateUserRoute
   ); // PUT /users/{id}

@@ -1,5 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { ErrorResponse } from "../types/errorResponseType.js";
+import { schemaId } from "../schemas/schemaId.js";
+import { handleError } from "../utils/handlers/handleError.js";
 
 export async function authorizeUserById(
   request: FastifyRequest<{ Params: { userId: string } }>,
@@ -7,6 +9,11 @@ export async function authorizeUserById(
 ) {
   const { user } = request;
   const targetUserId = request.params.userId; // Supõe que o ID alvo está nos parâmetros da rota
+  try {
+    await schemaId.validateAsync({id: targetUserId})
+  } catch (error) {
+    handleError(error, reply)
+  }
 
   // Verifica se o usuário logado é o mesmo que o alvo da operação
   if (!user || targetUserId !== user.userId) {
