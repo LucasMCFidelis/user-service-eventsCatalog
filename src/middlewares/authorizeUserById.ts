@@ -10,9 +10,13 @@ export async function authorizeUserById(
   const { user } = request;
   const targetUserId = request.params.userId; // Supõe que o ID alvo está nos parâmetros da rota
   try {
-    await schemaId.validateAsync({id: targetUserId})
+    await schemaId.validateAsync({ id: targetUserId });
   } catch (error) {
-    handleError(error, reply)
+    handleError(error, reply);
+  }
+
+  if (user.roleName === "Admin") {
+    return;
   }
 
   // Verifica se o usuário logado é o mesmo que o alvo da operação
