@@ -12,6 +12,8 @@ import { checkExistingUser } from "../utils/validators/checkExistingUser.js";
 import { LoginUser } from "../interfaces/loginUserInterface.js";
 import { comparePasswords } from "../utils/security/comparePasswords.js";
 import { UserTokenInterfaceProps } from "../interfaces/UserTokenInterfaceProps.js";
+import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
+import { schemaUserUpdatePassword } from "../schemas/schemaUserUpdatePassword.js";
 
 const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
 
@@ -87,7 +89,7 @@ async function getUserById(userId: string, includeFavorites: boolean = false) {
         email: true,
         phoneNumber: true,
         role: true,
-        eventFavorites: includeFavorites
+        eventFavorites: includeFavorites,
       },
     });
   } catch (error) {
@@ -180,6 +182,7 @@ async function updateUserPassword(data: {
   newPassword: string;
   recoveryCode: string;
 }) {
+  await schemaUserUpdatePassword.validateAsync(data)
   // Extrair email e senha fornecida do corpo da requisição
   const { email, newPassword, recoveryCode } = data;
 
@@ -198,9 +201,6 @@ async function updateUserPassword(data: {
     userEmail: email,
     recoveryCode,
   });
-
-  // Validar a nova senha com o schemaUserPassword para que a senha seja segura
-  await schemaUserPassword.validateAsync({ password: newPassword });
 
   try {
     // Gerar o hash da nova senha fornecida
@@ -230,13 +230,23 @@ async function validateRecoveryCode({
   recoveryCode,
 }: CodeValidationProps): Promise<void> {
   // Realiza a chamada para a API do emailService
-  return await axios.post(`${emailServiceUrl}/validate-recovery-code`, {
-    userEmail,
-    recoveryCode,
-  });
+  try {
+    await axios.post(
+      `${emailServiceUrl}/validate-recovery-code`,
+      {
+        userEmail,
+        recoveryCode,
+      }
+    );
+  } catch (error) {
+    handleAxiosError(error);
+  }
+  return;
 }
 
-async function validateUserCredentials(data: LoginUser): Promise<UserTokenInterfaceProps> {
+async function validateUserCredentials(
+  data: LoginUser
+): Promise<UserTokenInterfaceProps> {
   const userResponse = await getUserByEmail(data.userEmail);
   if (!userResponse.data || userResponse.error) {
     throw {
@@ -254,15 +264,15 @@ async function validateUserCredentials(data: LoginUser): Promise<UserTokenInterf
     throw {
       status: 401,
       message: "Credenciais inválidas",
-      error: "Erro de autenticação"
+      error: "Erro de autenticação",
     };
   }
 
   return {
     userId: userResponse.data.userId,
     userEmail: userResponse.data.email,
-    roleName: userResponse.data.role.roleName
-  }
+    roleName: userResponse.data.role.roleName,
+  };
 }
 
 export const userService = {
