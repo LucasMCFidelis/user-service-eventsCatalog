@@ -6,8 +6,8 @@ import axios from "axios";
 import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
 import { getEventById } from "../utils/db/getEventById.js";
 
-async function createFavorite(data: Favorite) {
-  const { eventFavoriteId, userFavoriteId } = data;
+async function createFavorite(userFavoriteId: string, data: Favorite) {
+  const { eventFavoriteId } = data;
 
   try {
     const response = await axios.get(
@@ -40,7 +40,7 @@ async function createFavorite(data: Favorite) {
 async function listFavorites(userId: string) {
   let user;
   try {
-    user = await userService.getUserById(userId, true);
+    user = await userService.getUserByIdOrEmail({ userId }, true);
   } catch (error) {
     console.error("Erro ao buscar usuário e seus eventos favoritados", error);
     throw {
@@ -60,7 +60,9 @@ async function listFavorites(userId: string) {
 
   try {
     const events = await Promise.all(
-      user.eventFavorites.map((favorite) => getEventById(favorite.eventFavoriteId))
+      user.eventFavorites.map((favorite) =>
+        getEventById(favorite.eventFavoriteId)
+      )
     );
 
     const filteredEvents = events.filter((event) => event !== null);
@@ -107,23 +109,23 @@ async function getFavoriteById(favoriteId: string) {
     };
   }
 
-  const eventFavorite = await getEventById(favorite.eventFavoriteId)
+  const eventFavorite = await getEventById(favorite.eventFavoriteId);
 
   return {
     favoriteId: favorite.favoriteId,
     userFavoriteId: favorite.userFavoriteId,
     createdAt: favorite.createdAt,
-    eventFavorite
+    eventFavorite,
   };
 }
 
 async function updateFavorite(favoriteId: string, data: any) {}
 
 async function deleteFavorite(favoriteId: string) {
-  await getFavoriteById(favoriteId)
+  await getFavoriteById(favoriteId);
 
   try {
-    await prisma.favorite.delete({where: {favoriteId}})
+    await prisma.favorite.delete({ where: { favoriteId } });
   } catch (error) {
     console.error("Erro ao deletar favorito", error);
     throw {

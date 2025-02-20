@@ -4,11 +4,11 @@ import { schemaId } from "../schemas/schemaId.js";
 import { handleError } from "../utils/handlers/handleError.js";
 
 export async function authorizeUserById(
-  request: FastifyRequest<{ Params: { userId: string } }>,
+  request: FastifyRequest<{ Querystring: { userId?: string } }>,
   reply: FastifyReply
 ) {
   const { user } = request;
-  const targetUserId = request.params.userId; // Supõe que o ID alvo está nos parâmetros da rota
+  const targetUserId = request.query.userId; // Supõe que o ID alvo está nos parâmetros da rota
   try {
     await schemaId.validateAsync({ id: targetUserId });
   } catch (error) {

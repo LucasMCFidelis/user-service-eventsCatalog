@@ -72,36 +72,41 @@ async function createUser(data: CadastreUser) {
   };
 }
 
-async function getUserById(userId: string, includeFavorites: boolean = false) {
-  await schemaId.validateAsync({ id: userId });
+async function getUserByIdOrEmail(
+  params: { userId?: string; userEmail?: string },
+  includeFavorites: boolean = false
+) {
+  const { userId, userEmail } = params;
 
-  // Buscar o usuário no banco de dados com os campos necessários
-  let user;
-  try {
-    user = await prisma.user.findUnique({
-      where: {
-        userId,
-      },
-      select: {
-        userId: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phoneNumber: true,
-        role: true,
-        eventFavorites: includeFavorites,
-      },
-    });
-  } catch (error) {
-    console.error("Erro ao buscar usuário", error);
+  if (!userId && !userEmail) {
     throw {
-      status: 500,
-      message: "Erro interno ao buscar usuário",
-      error: "Erro no servidor",
+      status: 400,
+      message: "Informe um userId ou userEmail para a busca.",
+      error: "Bad Request",
     };
   }
 
-  // Retornar mensagem de erro caso o usuário não seja encontrado
+  if (userEmail) {
+    await schemaUserUpdate.validateAsync({ email: userEmail });
+  } else if (userId) {
+    await schemaId.validateAsync({ id: userId });
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ userId }, { email: userEmail }],
+    },
+    select: {
+      userId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phoneNumber: true,
+      role: true,
+      eventFavorites: includeFavorites,
+    },
+  });
+
   if (!user) {
     throw {
       status: 404,
@@ -115,7 +120,7 @@ async function getUserById(userId: string, includeFavorites: boolean = false) {
 
 async function deleteUser(userId: string) {
   // Buscar o usuário no banco de dados
-  const user = await getUserById(userId);
+  const user = await getUserByIdOrEmail({userId});
 
   try {
     // Deletar usuário
@@ -136,7 +141,7 @@ async function deleteUser(userId: string) {
 
 async function updateUser(userId: string, data: Partial<CadastreUser>) {
   // Buscar o usuário no banco de dados
-  const user = await getUserById(userId);
+  const user = await getUserByIdOrEmail({userId});
 
   // Valida o corpo da requisição com schemaUserUpdate
   const userData = await schemaUserUpdate.validateAsync(data);
@@ -182,21 +187,13 @@ async function updateUserPassword(data: {
   newPassword: string;
   recoveryCode: string;
 }) {
-  await schemaUserUpdatePassword.validateAsync(data)
+  await schemaUserUpdatePassword.validateAsync(data);
   // Extrair email e senha fornecida do corpo da requisição
   const { email, newPassword, recoveryCode } = data;
 
   // Buscar o usuário no banco de dados utilizando a função utilitária
-  const userResponse = await getUserByEmail(email);
-  const user = userResponse.data;
-  if (!user || userResponse.error) {
-    throw {
-      status: userResponse.status,
-      error: userResponse.error,
-      message: userResponse.message,
-    };
-  }
-
+  const user = await getUserByIdOrEmail({userEmail: email});
+  
   await validateRecoveryCode({
     userEmail: email,
     recoveryCode,
@@ -231,13 +228,10 @@ async function validateRecoveryCode({
 }: CodeValidationProps): Promise<void> {
   // Realiza a chamada para a API do emailService
   try {
-    await axios.post(
-      `${emailServiceUrl}/validate-recovery-code`,
-      {
-        userEmail,
-        recoveryCode,
-      }
-    );
+    await axios.post(`${emailServiceUrl}/validate-recovery-code`, {
+      userEmail,
+      recoveryCode,
+    });
   } catch (error) {
     handleAxiosError(error);
   }
@@ -277,7 +271,8 @@ async function validateUserCredentials(
 
 export const userService = {
   createUser,
-  getUserById,
+  // getUserById,
+  getUserByIdOrEmail,
   deleteUser,
   updateUser,
   updateUserPassword,

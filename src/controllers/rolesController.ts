@@ -20,7 +20,3 @@ export async function listRolesRoute(_:FastifyRequest, reply: FastifyReply) {
         handleError(error, reply)
     }
 }
-
-export async function updateRoleRoute(request:FastifyRequest, reply: FastifyReply) {
-    
-}

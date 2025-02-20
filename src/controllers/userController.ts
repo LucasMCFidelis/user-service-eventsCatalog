@@ -16,12 +16,24 @@ export async function createUserRoute(
   }
 }
 
-export async function getUserByIdRoute(
-  request: FastifyRequest<{ Params: { userId: string } }>,
+export async function getUserRoute(
+  request: FastifyRequest<{
+    Querystring: { userId?: string; userEmail?: string };
+  }>,
   reply: FastifyReply
 ) {
   try {
-    const user = await userService.getUserById(request.params.userId);
+    const { userId, userEmail } = request.query;
+
+    if (!userId && !userEmail) {
+      return reply.status(400).send({
+        status: 400,
+        message: "Informe um userId ou userEmail para a busca.",
+        error: "Bad Request",
+      });
+    }
+
+    const user = await userService.getUserByIdOrEmail({ userId, userEmail });
     return reply.status(200).send(user);
   } catch (error) {
     return handleError(error, reply);
@@ -29,11 +41,11 @@ export async function getUserByIdRoute(
 }
 
 export async function deleteUserRoute(
-  request: FastifyRequest<{ Params: { userId: string } }>,
+  request: FastifyRequest<{ Querystring: { userId: string } }>,
   reply: FastifyReply
 ) {
   try {
-    await userService.deleteUser(request.params.userId);
+    await userService.deleteUser(request.query.userId);
     return reply.status(200).send({ message: "Usuário excluído com sucesso" });
   } catch (error) {
     return handleError(error, reply);
@@ -42,13 +54,13 @@ export async function deleteUserRoute(
 
 export async function updateUserRoute(
   request: FastifyRequest<{
-    Params: { userId: string };
+    Querystring: { userId: string };
     Body: Partial<CadastreUser>;
   }>,
   reply: FastifyReply
 ) {
   try {
-    await userService.updateUser(request.params.userId, request.body);
+    await userService.updateUser(request.query.userId, request.body);
     return reply
       .status(200)
       .send({ message: "Usuário atualizado com sucesso" });
@@ -84,7 +96,7 @@ export async function validateUserCredentialsRoute(
       request.body
     );
     console.log(validatedUser);
-    
+
     return reply.status(200).send(validatedUser);
   } catch (error) {
     return handleError(error, reply);

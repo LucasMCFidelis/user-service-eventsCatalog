@@ -10,23 +10,23 @@ import { authorizeUserById } from "../middlewares/authorizeUserById.js";
 import { Favorite } from "@prisma/client";
 
 export async function favoriteRoutes(server: FastifyInstance) {
-  server.post<{ Params: { userId: string }; Body: Favorite }>(
-    "/:userId",
+  server.post<{ Querystring: { userId: string }; Body: Favorite }>(
+    "/",
     { preHandler: [authMiddleware, authorizeUserById] },
     createFavoriteRoute
   );
-  server.get<{ Params: { userId: string } }>(
-    "/:userId",
+  server.get<{ Querystring: { userId: string } }>(
+    "/",
     { preHandler: [authMiddleware, authorizeUserById] },
     listFavoritesRoute
   );
-  server.get<{ Params: { userId: string; favoriteId: string } }>(
-    "/:userId/:favoriteId",
+  server.get<{ Querystring: { userId?: string }; Params: { favoriteId: string } }>(
+    "/:favoriteId",
     { preHandler: [authMiddleware, authorizeUserById] },
     getFavoriteByIdRoute
   );
-  server.delete<{ Params: { userId: string; favoriteId: string } }>(
-    "/:userId/:favoriteId",
+  server.delete<{ Querystring: { userId: string; favoriteId: string } }>(
+    "/",
     { preHandler: [authMiddleware, authorizeUserById] },
     deleteFavoriteRoute
   );

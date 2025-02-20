@@ -4,27 +4,27 @@ import { favoriteService } from "../services/favoriteService.js";
 import { Favorite } from "@prisma/client";
 import { userService } from "../services/userService.js";
 
-export async function createFavoriteRoute(request:FastifyRequest<{Params: {userId: string}, Body: Favorite}>, reply: FastifyReply) {
+export async function createFavoriteRoute(request:FastifyRequest<{Querystring: {userId: string}, Body: Favorite}>, reply: FastifyReply) {
     try {
-        const newFavorite = await favoriteService.createFavorite(request.body)
+        const newFavorite = await favoriteService.createFavorite(request.query.userId, request.body)
         return reply.status(200).send(newFavorite)
     } catch (error) {
         handleError(error, reply)
     }
 }
 
-export async function listFavoritesRoute(request:FastifyRequest<{Params: {userId: string}}>, reply: FastifyReply) {
+export async function listFavoritesRoute(request:FastifyRequest<{Querystring: {userId: string}}>, reply: FastifyReply) {
     try {
-        const eventFavorites = await favoriteService.listFavorites(request.params.userId)
+        const eventFavorites = await favoriteService.listFavorites(request.query.userId)
         return reply.status(200).send(eventFavorites)
     } catch (error) {
         handleError(error, reply)
     }
 }
 
-export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {userId: string, favoriteId: string}}>, reply: FastifyReply) {
+export async function getFavoriteByIdRoute(request:FastifyRequest<{ Querystring: { userId?: string }; Params: { favoriteId: string } }>, reply: FastifyReply) {
     try {
-        await userService.getUserById(request.params.userId)
+        await userService.getUserByIdOrEmail({userId: request.query.userId})
         const eventFavorite = await favoriteService.getFavoriteById(request.params.favoriteId)
         return reply.status(200).send(eventFavorite)
     } catch (error) {
@@ -32,9 +32,9 @@ export async function getFavoriteByIdRoute(request:FastifyRequest<{Params: {user
     }
 }
 
-export async function deleteFavoriteRoute(request:FastifyRequest<{Params: {userId: string, favoriteId: string}}>, reply: FastifyReply) {
+export async function deleteFavoriteRoute(request:FastifyRequest<{Querystring: {userId: string, favoriteId: string}}>, reply: FastifyReply) {
     try {
-        await favoriteService.deleteFavorite(request.params.favoriteId)
+        await favoriteService.deleteFavorite(request.query.favoriteId)
         return reply.status(200).send({message: "Favorito excluído com sucesso"})
     } catch (error) {
         handleError(error, reply)
