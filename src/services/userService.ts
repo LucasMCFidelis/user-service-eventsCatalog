@@ -14,6 +14,7 @@ import { comparePasswords } from "../utils/security/comparePasswords.js";
 import { UserTokenInterfaceProps } from "../interfaces/UserTokenInterfaceProps.js";
 import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
 import { schemaUserUpdatePassword } from "../schemas/schemaUserUpdatePassword.js";
+import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.js";
 
 const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
 
@@ -182,11 +183,7 @@ async function updateUser(userId: string, data: Partial<CadastreUser>) {
   }
 }
 
-async function updateUserPassword(data: {
-  email: string;
-  newPassword: string;
-  recoveryCode: string;
-}) {
+async function updateUserPassword(data: UpdateUserPasswordProps) {
   await schemaUserUpdatePassword.validateAsync(data);
   // Extrair email e senha fornecida do corpo da requisição
   const { email, newPassword, recoveryCode } = data;
@@ -271,7 +268,6 @@ async function validateUserCredentials(
 
 export const userService = {
   createUser,
-  // getUserById,
   getUserByIdOrEmail,
   deleteUser,
   updateUser,

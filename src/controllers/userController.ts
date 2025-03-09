@@ -3,6 +3,7 @@ import { userService } from "../services/userService.js";
 import { handleError } from "../utils/handlers/handleError.js";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
 import { LoginUser } from "../interfaces/loginUserInterface.js";
+import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.js";
 
 export async function createUserRoute(
   request: FastifyRequest<{ Body: CadastreUser }>,
@@ -71,11 +72,7 @@ export async function updateUserRoute(
 
 export async function updateUserPasswordRoute(
   request: FastifyRequest<{
-    Body: {
-      email: string;
-      newPassword: string;
-      recoveryCode: string;
-    };
+    Body: UpdateUserPasswordProps;
   }>,
   reply: FastifyReply
 ) {
