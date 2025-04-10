@@ -17,6 +17,7 @@ import { schemaUserUpdatePassword } from "../schemas/schemaUserUpdatePassword.js
 import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.js";
 
 const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
+const authServiceUrl = process.env.AUTH_SERVICE_URL;
 
 async function createUser(data: CadastreUser) {
   const { firstName, lastName, email, phoneNumber, password } = data;
@@ -64,13 +65,23 @@ async function createUser(data: CadastreUser) {
     };
   }
 
-  return {
-    userId: newUser.userId,
-    firstName: newUser.firstName,
-    lastName: newUser.lastName,
-    email: newUser.email,
-    phoneNumber: newUser.phoneNumber,
-  };
+  try {
+    const response = await axios.post(`${authServiceUrl}/login`, {
+      userEmail: email,
+      passwordProvided: password,
+    });
+    console.log("response de cadastro de usuário", response);
+    return {
+      userId: newUser.userId,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      phoneNumber: newUser.phoneNumber,
+      userToken: response.data.userToken
+    };
+  } catch (error) {
+    handleAxiosError(error);
+  }
 }
 
 async function getUserByIdOrEmail(
@@ -121,7 +132,7 @@ async function getUserByIdOrEmail(
 
 async function deleteUser(userId: string) {
   // Buscar o usuário no banco de dados
-  const user = await getUserByIdOrEmail({userId});
+  const user = await getUserByIdOrEmail({ userId });
 
   try {
     // Deletar usuário
@@ -142,7 +153,7 @@ async function deleteUser(userId: string) {
 
 async function updateUser(userId: string, data: Partial<CadastreUser>) {
   // Buscar o usuário no banco de dados
-  const user = await getUserByIdOrEmail({userId});
+  const user = await getUserByIdOrEmail({ userId });
 
   // Valida o corpo da requisição com schemaUserUpdate
   const userData = await schemaUserUpdate.validateAsync(data);
@@ -189,8 +200,8 @@ async function updateUserPassword(data: UpdateUserPasswordProps) {
   const { email, newPassword, recoveryCode } = data;
 
   // Buscar o usuário no banco de dados utilizando a função utilitária
-  const user = await getUserByIdOrEmail({userEmail: email});
-  
+  const user = await getUserByIdOrEmail({ userEmail: email });
+
   await validateRecoveryCode({
     userEmail: email,
     recoveryCode,
