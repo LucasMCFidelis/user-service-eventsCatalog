@@ -70,7 +70,6 @@ async function createUser(data: CadastreUser) {
       userEmail: email,
       passwordProvided: password,
     });
-    console.log("response de cadastro de usuário", response);
     return {
       userId: newUser.userId,
       firstName: newUser.firstName,
