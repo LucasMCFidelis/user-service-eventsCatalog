@@ -3,7 +3,6 @@ import { schemaUserPassword } from "../../schemas/schemaUserPassword.js";
 import { schemaUserRole } from "../../schemas/schemaUserRole.js";
 import { roleService } from "../../services/roleService.js";
 import { hashPassword } from "../security/hashPassword.js";
-import { getRoleByName } from "./getRoleByName.js";
 import { prisma } from "./prisma.js";
 
 async function seedRoles() {
@@ -69,7 +68,7 @@ async function seedAdmins() {
 
   const hashedPassword = await hashPassword(password);
 
-  const roleResponse = await getRoleByName("Admin");
+  const roleResponse = await roleService.getRoleByName("Admin");
 
   for (const admin of dataAdmins) {
     try {

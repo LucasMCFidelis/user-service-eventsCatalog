@@ -15,6 +15,8 @@ import { UserTokenInterfaceProps } from "../interfaces/UserTokenInterfaceProps.j
 import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
 import { schemaUserUpdatePassword } from "../schemas/schemaUserUpdatePassword.js";
 import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.js";
+import { roleService } from "./roleService.js";
+import { ErrorResponse } from "../types/errorResponseType.js";
 
 const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
 const authServiceUrl = process.env.AUTH_SERVICE_URL;
@@ -76,7 +78,7 @@ async function createUser(data: CadastreUser) {
       lastName: newUser.lastName,
       email: newUser.email,
       phoneNumber: newUser.phoneNumber,
-      userToken: response.data.userToken
+      userToken: response.data.userToken,
     };
   } catch (error) {
     handleAxiosError(error);
@@ -276,6 +278,40 @@ async function validateUserCredentials(
   };
 }
 
+async function updateUserRole(userId: string, newRole: string) {
+  console.log(userId, newRole);
+
+  const [user, role] = await Promise.all([
+    getUserByIdOrEmail({ userId }),
+    roleService.getRoleByName(newRole),
+  ]);
+
+  if (user.role?.roleName === newRole) {
+    const errorValue: ErrorResponse = "Erro de Conflito";
+    throw {
+      status: 409,
+      error: errorValue,
+      message: `O usuário ${user.firstName} já possui a permissão ${newRole}`,
+    };
+  }
+
+  try {
+    await prisma.user.update({
+      where: { userId: user.userId },
+      data: {
+        roleId: role.data?.roleId,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar permissão do usuário", error);
+    throw {
+      status: 500,
+      message: "Erro interno ao atualizar permissão do usuário",
+      error: "Erro no servidor",
+    };
+  }
+}
+
 export const userService = {
   createUser,
   getUserByIdOrEmail,
@@ -283,4 +319,5 @@ export const userService = {
   updateUser,
   updateUserPassword,
   validateUserCredentials,
+  updateUserRole,
 };

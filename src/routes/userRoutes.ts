@@ -4,12 +4,14 @@ import {
   deleteUserRoute,
   getUserRoute,
   updateUserPasswordRoute,
+  updateUserRoleRoute,
   updateUserRoute,
   validateUserCredentialsRoute,
 } from "../controllers/userController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { authorizeUserById } from "../middlewares/authorizeUserById.js";
 import { CadastreUser } from "../interfaces/cadastreUserInterface.js";
+import { checkRole } from "../utils/security/checkRole.js";
 
 export async function userRoutes(server: FastifyInstance) {
   server.post("/", createUserRoute); // POST /users
@@ -33,4 +35,12 @@ export async function userRoutes(server: FastifyInstance) {
   ); // PUT /users/{id}
   server.patch("/recuperacao/atualizar-senha", updateUserPasswordRoute); // PATCH users/recuperacao/atualizar-senha
   server.post("/validate-credentials", validateUserCredentialsRoute); // POST /users/validate-credentials
+  server.put<{
+    Querystring: { userId: string };
+    Body: { newRole: string };
+  }>(
+    "/update-role-user",
+    { preHandler: [authMiddleware, checkRole("Admin")] },
+    updateUserRoleRoute
+  );
 }

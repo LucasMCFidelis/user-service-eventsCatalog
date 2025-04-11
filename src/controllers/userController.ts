@@ -99,3 +99,16 @@ export async function validateUserCredentialsRoute(
     return handleError(error, reply);
   }
 }
+
+export async function updateUserRoleRoute(request:FastifyRequest<{
+  Querystring: { userId: string };
+  Body: { newRole: string };
+}>, reply: FastifyReply) {
+  try {
+    await userService.updateUserRole(request.query.userId, request.body.newRole)
+
+    return reply.status(200).send({message: "Permissão de usuário atualizada com sucesso"})
+  } catch (error) {
+    return handleError(error, reply);
+  }
+}
