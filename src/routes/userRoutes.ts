@@ -21,7 +21,7 @@ export async function userRoutes(server: FastifyInstance) {
     getUserRoute
   ); // GET /users?userId=123 ou GET /users?userEmail=email@email.com
   server.delete<{ Querystring: { userId: string } }>(
-    "/:userId",
+    "/",
     { preHandler: [authMiddleware, authorizeUserById] },
     deleteUserRoute
   ); // DELETE /users/{id}
@@ -29,7 +29,7 @@ export async function userRoutes(server: FastifyInstance) {
     Querystring: { userId: string };
     Body: Partial<CadastreUser>;
   }>(
-    "/:userId",
+    "/",
     { preHandler: [authMiddleware, authorizeUserById] },
     updateUserRoute
   ); // PUT /users/{id}
