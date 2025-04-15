@@ -4,9 +4,9 @@ import { favoriteService } from "../services/favoriteService.js";
 import { Favorite } from "@prisma/client";
 import { userService } from "../services/userService.js";
 
-export async function createFavoriteRoute(request:FastifyRequest<{Querystring: {userId: string}, Body: Favorite}>, reply: FastifyReply) {
+export async function createFavoriteRoute(request:FastifyRequest<{Querystring: { userId: string, eventId: string }}>, reply: FastifyReply) {
     try {
-        const newFavorite = await favoriteService.createFavorite(request.query.userId, request.body)
+        const newFavorite = await favoriteService.createFavorite(request.query.userId, request.query.eventId)
         return reply.status(200).send(newFavorite)
     } catch (error) {
         handleError(error, reply)
@@ -22,10 +22,10 @@ export async function listFavoritesRoute(request:FastifyRequest<{Querystring: {u
     }
 }
 
-export async function getFavoriteByIdRoute(request:FastifyRequest<{ Querystring: { userId?: string }; Params: { favoriteId: string } }>, reply: FastifyReply) {
+export async function getFavoriteByIdRoute(request:FastifyRequest<{Querystring: { userId: string, favoriteId: string }}>, reply: FastifyReply) {
     try {
         await userService.getUserByIdOrEmail({userId: request.query.userId})
-        const eventFavorite = await favoriteService.getFavoriteById(request.params.favoriteId)
+        const eventFavorite = await favoriteService.getFavoriteById(request.query.favoriteId)
         return reply.status(200).send(eventFavorite)
     } catch (error) {
         handleError(error, reply)

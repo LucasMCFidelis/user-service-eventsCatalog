@@ -1,17 +1,21 @@
-import { Favorite } from "@prisma/client";
 import { schemaId } from "../schemas/schemaId.js";
 import { prisma } from "../utils/db/prisma.js";
 import { userService } from "./userService.js";
 import axios from "axios";
 import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
 import { getEventById } from "../utils/db/getEventById.js";
+import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 
-async function createFavorite(userFavoriteId: string, data: Favorite) {
-  const { eventFavoriteId } = data;
+const eventServiceUrl = resolveServiceUrl("EVENT")
 
+async function createFavorite(userFavoriteId: string, eventFavoriteId: string) {
+  console.log('entrei aqui');
+  console.log(eventServiceUrl);
+  
+  
   try {
     const response = await axios.get(
-      `${process.env.EVENT_SERVICE_URL}/${eventFavoriteId}`
+      `${eventServiceUrl}/events/${eventFavoriteId}`
     );
   } catch (error) {
     handleAxiosError(error);
@@ -50,7 +54,9 @@ async function listFavorites(userId: string) {
     };
   }
 
-  if (user.eventFavorites.length === 0) {
+  const { eventFavorites } = user;
+
+  if (!eventFavorites || eventFavorites.length === 0) {
     throw {
       status: 404,
       error: "Erro Not Found",
@@ -59,15 +65,22 @@ async function listFavorites(userId: string) {
   }
 
   try {
-    const events = await Promise.all(
-      user.eventFavorites.map((favorite) =>
-        getEventById(favorite.eventFavoriteId)
-      )
+    const favoritesWithEvents = await Promise.all(
+      eventFavorites.map(async (favorite) => {
+        const event = await getEventById(favorite.eventFavoriteId);
+        if (!event) return null;
+
+        return {
+          favoriteId: favorite.favoriteId,
+          createdAt: favorite.createdAt,
+          event,
+        };
+      })
     );
 
-    const filteredEvents = events.filter((event) => event !== null);
+    const filtered = favoritesWithEvents.filter((fav) => fav !== null);
 
-    if (filteredEvents.length === 0) {
+    if (filtered.length === 0) {
       throw {
         status: 404,
         error: "Erro Not Found",
@@ -75,7 +88,7 @@ async function listFavorites(userId: string) {
       };
     }
 
-    return filteredEvents;
+    return filtered;
   } catch (error) {
     console.error("Erro ao buscar eventos favoritados:", error);
     throw {
@@ -92,6 +105,8 @@ async function getFavoriteById(favoriteId: string) {
   let favorite;
   try {
     favorite = await prisma.favorite.findUnique({ where: { favoriteId } });
+    console.log(favorite);
+    
   } catch (error) {
     console.error("Erro ao buscar favorito pelo id");
     throw {
