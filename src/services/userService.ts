@@ -17,13 +17,15 @@ import { schemaUserUpdatePassword } from "../schemas/schemaUserUpdatePassword.js
 import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.js";
 import { roleService } from "./roleService.js";
 import { ErrorResponse } from "../types/errorResponseType.js";
+import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 
-const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
-const authServiceUrl = process.env.AUTH_SERVICE_URL;
+const emailServiceUrl = resolveServiceUrl("EMAIL")
+const authServiceUrl = resolveServiceUrl("AUTH")
 
 async function createUser(data: CadastreUser) {
   const { firstName, lastName, email, phoneNumber, password } = data;
-
+  console.log(data);
+  
   // Validação dos dados com schemas
   await schemaUserCadastre.concat(schemaUserPassword).validateAsync({
     firstName,

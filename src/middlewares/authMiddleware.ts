@@ -1,6 +1,7 @@
 import axios from "axios";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
+import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 
 export async function authMiddleware(
   request: FastifyRequest,
@@ -16,7 +17,7 @@ export async function authMiddleware(
   try {
     // Envia o token para o serviço de autenticação
     const response = await axios.post(
-      `${process.env.AUTH_SERVICE_URL}/validate-token`,
+      `${resolveServiceUrl("AUTH")}/validate-token`,
       {},
       {
         headers: {

@@ -1,10 +1,11 @@
 import axios from "axios";
 import { handleAxiosError } from "../handlers/handleAxiosError.js";
+import { resolveServiceUrl } from "../resolveServiceUrl.js";
 
 export async function getEventById(eventFavoriteId: string) {
   try {
     const response = await axios.get(
-      `${process.env.EVENT_SERVICE_URL}/${eventFavoriteId}`
+      `${resolveServiceUrl("EVENT")}/events/${eventFavoriteId}`
     );
     return response.data;
   } catch (error) {
