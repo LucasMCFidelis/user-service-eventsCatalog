@@ -9,10 +9,6 @@ import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 const eventServiceUrl = resolveServiceUrl("EVENT")
 
 async function createFavorite(userFavoriteId: string, eventFavoriteId: string) {
-  console.log('entrei aqui');
-  console.log(eventServiceUrl);
-  
-  
   try {
     const response = await axios.get(
       `${eventServiceUrl}/events/${eventFavoriteId}`

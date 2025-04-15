@@ -13,7 +13,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # # Diretórios de build/output
-# dist/
+dist/
 # build/
 # out/
 
