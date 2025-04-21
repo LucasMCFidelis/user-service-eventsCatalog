@@ -5,6 +5,6 @@ export const schemaUserPassword = Joi.object({
         'any.required': 'Senha é obrigatória',
         'string.base': 'Senha deve ser uma string',
         'string.empty': 'Senha não pode estar vazia',
-        'string.pattern.base': 'Senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, um número e um caractere especial (!@#$&*)',
+        'string.pattern.base': 'Senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, uma letra minuscula, um número e um caractere especial (!@#$&*)',
     })
 })
