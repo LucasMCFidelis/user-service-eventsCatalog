@@ -31,6 +31,47 @@ describe("Atualizar Usuário - ", () => {
     });
   });
 
+  it("com Id inválido", () => {
+    const updateData = {
+      firstName: "NovoNome",
+      lastName: "NovoSobrenome",
+    };
+
+    cy.api({
+      method: "PUT",
+      url: `/users?userId=id_invalido`,
+      headers: { Authorization: `Bearer ${userTokenPrimary}` },
+      body: updateData,
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.eq(400);
+      expect(res.body.message.toLowerCase()).to.include(
+        "id deve estar no formato de uuid v4"
+      );
+    });
+  });
+
+  it("com email já cadastrado", () => {
+    const updateData = {
+      firstName: "Lucas",
+      lastName: "Fidelis",
+      email: "lucasm241301@gmail.com",
+    };
+
+    cy.api({
+      method: "PUT",
+      url: `/users?userId=${userIdPrimary}`,
+      headers: { Authorization: `Bearer ${userTokenPrimary}` },
+      body: updateData,
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.eq(409);
+      expect(res.body.message.toLowerCase()).to.include(
+        "este e-mail já está cadastrado"
+      );
+    });
+  });
+
   it("sem Token de autorização", () => {
     cy.api({
       method: "PUT",

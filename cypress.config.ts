@@ -14,6 +14,7 @@ export default defineConfig({
   },
   env: {
     AUTH_SERVICE_URL: resolveServiceUrl("AUTH"),
+    EMAIL_SERVICE_URL: resolveServiceUrl("EMAIL"),
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   },
