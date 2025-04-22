@@ -1,37 +1,40 @@
-/// <reference types="cypress" />
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+import { faker } from "@faker-js/faker";
+
+const authServiceUrl = Cypress.env("AUTH_SERVICE_URL");
+
+Cypress.Commands.add("createUser", (overrides = {}) => {
+  const user = {
+    firstName: faker.person.firstName(),
+    lastName: faker.person.middleName() + faker.person.lastName(),
+    email: faker.internet.email(),
+    phoneNumber: "83999999999",
+    password: "{Password@123",
+    ...overrides,
+  };
+
+  return cy.api("POST", "/users", user).then((res) => {
+    expect(res.status).to.eq(201);
+    expect(res.body).to.have.property("userId");
+    expect(user.email).to.include("@");
+    return { user, res };
+  });
+});
+
+Cypress.Commands.add("loginAsAdmin", () => {
+  const adminEmail = Cypress.env("ADMIN_EMAIL");
+  const adminPassword = Cypress.env("ADMIN_PASSWORD");
+
+  return cy
+    .api({
+      method: "POST",
+      url: `${authServiceUrl}/login`,
+      body: {
+        userEmail: adminEmail,
+        passwordProvided: adminPassword,
+      },
+    })
+    .then((res) => {
+      expect(res.status).to.eq(200);
+      Cypress.env("adminToken", res.body.userToken);
+    });
+});
