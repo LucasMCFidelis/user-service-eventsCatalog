@@ -18,6 +18,7 @@ import { UpdateUserPasswordProps } from "../interfaces/UpdateUserPasswordProps.j
 import { roleService } from "./roleService.js";
 import { ErrorResponse } from "../types/errorResponseType.js";
 import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
+import { schemaUserCredentials } from "../schemas/schemaUserCredentials.js";
 
 const emailServiceUrl = resolveServiceUrl("EMAIL");
 const authServiceUrl = resolveServiceUrl("AUTH");
@@ -262,6 +263,8 @@ async function validateRecoveryCode({
 async function validateUserCredentials(
   data: LoginUser
 ): Promise<UserTokenInterfaceProps> {
+  await schemaUserCredentials.validateAsync(data)
+
   const userResponse = await getUserByEmail(data.userEmail);
   if (!userResponse.data || userResponse.error) {
     throw {
