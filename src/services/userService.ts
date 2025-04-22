@@ -36,13 +36,15 @@ async function createUser(data: CadastreUser) {
   });
 
   // Verificar se o usuário já existe
-  const emailCheckResponse = await checkExistingUser(email);
-  if (emailCheckResponse.existingUser || emailCheckResponse.error) {
-    throw {
-      status: emailCheckResponse.status,
-      error: emailCheckResponse.error,
-      message: emailCheckResponse.message,
-    };
+  if (email) {
+    const emailCheckResponse = await checkExistingUser(email);
+    if (emailCheckResponse.existingUser || emailCheckResponse.error) {
+      throw {
+        status: emailCheckResponse.status,
+        error: emailCheckResponse.error,
+        message: emailCheckResponse.message,
+      };
+    }
   }
 
   // Criptografar a senha
@@ -163,7 +165,7 @@ async function updateUser(userId: string, data: Partial<CadastreUser>) {
   const { firstName, lastName, email, phoneNumber } = userData;
 
   // Checa se o email já existe, exceto para o email atual do usuário
-  if (email !== user.email) {
+  if (email && email !== user.email) {
     const emailCheckResponse = await checkExistingUser(email);
     if (emailCheckResponse.existingUser || emailCheckResponse.error) {
       throw {
