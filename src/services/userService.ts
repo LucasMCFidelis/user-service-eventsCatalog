@@ -19,13 +19,13 @@ import { roleService } from "./roleService.js";
 import { ErrorResponse } from "../types/errorResponseType.js";
 import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 
-const emailServiceUrl = resolveServiceUrl("EMAIL")
-const authServiceUrl = resolveServiceUrl("AUTH")
+const emailServiceUrl = resolveServiceUrl("EMAIL");
+const authServiceUrl = resolveServiceUrl("AUTH");
 
 async function createUser(data: CadastreUser) {
   const { firstName, lastName, email, phoneNumber, password } = data;
   console.log(data);
-  
+
   // Validação dos dados com schemas
   await schemaUserCadastre.concat(schemaUserPassword).validateAsync({
     firstName,
@@ -157,6 +157,14 @@ async function deleteUser(userId: string) {
 }
 
 async function updateUser(userId: string, data: Partial<CadastreUser>) {
+  if (!Object.keys(data).length) {
+    throw {
+      status: 400,
+      message: "Pelo menos um campo deve ser preenchido",
+      error: "Erro de validação",
+    };
+  }
+
   // Buscar o usuário no banco de dados
   const user = await getUserByIdOrEmail({ userId });
 
