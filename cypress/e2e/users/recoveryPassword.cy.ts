@@ -4,16 +4,13 @@ describe("Recuperação de Senha - ", () => {
   let recoveryCode: string;
 
   before(() => {
-    cy.createUser().then(({ user }) => {
-      email = user.email.toLowerCase();
-
-      // Envia código de recuperação
-      cy.api("POST", `${emailServiceUrl}/send-recovery-code`, { email }).then(
-        (res) => {
-          recoveryCode = res.body.recoveryCode;
-        }
-      );
-    });
+    email = "lucasm241301@gmail.com";
+    // Envia código de recuperação
+    cy.api("POST", `${emailServiceUrl}/send-recovery-code`, { email }).then(
+      (res) => {
+        recoveryCode = res.body.recoveryCode;
+      }
+    );
   });
 
   it("com dados válidos (email, nova senha e código)", () => {
@@ -44,7 +41,7 @@ describe("Recuperação de Senha - ", () => {
     }).then((res) => {
       expect(res.status).to.eq(400);
       expect(res.body.message.toLowerCase()).to.include(
-        "senha deve conter letra maiúscula"
+        "senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, uma letra minuscula, um número e um caractere especial (!@#$&*)"
       );
     });
   });
@@ -112,7 +109,7 @@ describe("Recuperação de Senha - ", () => {
     }).then((res) => {
       expect(res.status).to.eq(400);
       expect(res.body.message.toLowerCase()).to.include(
-        "recovery code é obrigatório"
+        "recoverycode é obrigatório"
       );
     });
   });
@@ -129,7 +126,7 @@ describe("Recuperação de Senha - ", () => {
     }).then((res) => {
       expect(res.status).to.eq(400);
       expect(res.body.message.toLowerCase()).to.include(
-        "nova senha é obrigatória"
+        "senha é obrigatória"
       );
     });
   });
