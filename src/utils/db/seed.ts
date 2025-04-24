@@ -1,13 +1,12 @@
 import { schemaUserCadastre } from "../../schemas/schemaUserCadastre.js";
 import { schemaUserPassword } from "../../schemas/schemaUserPassword.js";
-import { schemaUserRole } from "../../schemas/schemaUserRole.js";
 import { roleService } from "../../services/roleService.js";
 import { hashPassword } from "../security/hashPassword.js";
 import { prisma } from "./prisma.js";
 
 async function seedRoles() {
   console.log("Iniciando seedRoles...");
-  const existingRoles = await roleService.listRoles()
+  const existingRoles = await roleService.listRoles();
   if (existingRoles) {
     console.log("Roles já foram criados.");
     return;
@@ -29,7 +28,7 @@ async function seedRoles() {
 
   for (const role of userRoles) {
     try {
-      await roleService.createRole(role)
+      await roleService.createRole(role);
       console.log(`Role "${role.roleName}" criada.`);
     } catch (error: any) {
       console.error("Erro ao criar role:", error.message);
@@ -100,10 +99,8 @@ async function seedAdmins() {
 
 async function main() {
   try {
-    await Promise.all([
-      seedRoles(),
-      seedAdmins()
-    ])
+    await seedRoles();
+    await seedAdmins();
     console.log("Seed executado com sucesso.");
   } catch (error: any) {
     console.error("Erro durante a execução do seed:", error.message);
