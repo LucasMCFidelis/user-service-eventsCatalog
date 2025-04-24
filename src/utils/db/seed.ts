@@ -6,7 +6,7 @@ import { prisma } from "./prisma.js";
 
 async function seedRoles() {
   console.log("Iniciando seedRoles...");
-  const existingRoles = await roleService.listRoles();
+  const existingRoles = await prisma.role.findMany();
   if (existingRoles) {
     console.log("Roles já foram criados.");
     return;
