@@ -65,7 +65,7 @@ export async function getUserByEmail(userEmail: string): Promise<GetUserResponse
         if (!user) {
             throw {
                 status: 404,
-                message: "Nenhum usuário encontrado com este email",
+                message: "Usuário não encontrado",
                 error: "Erro Not Found",
                 data: undefined
             }
