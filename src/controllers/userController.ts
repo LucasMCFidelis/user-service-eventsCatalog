@@ -76,8 +76,15 @@ export async function updateUserPasswordRoute(
   }>,
   reply: FastifyReply
 ) {
+  const scenarioHeader = request.headers["x-mock-scenario"];
+
+  const scenario =
+    process.env.MOCK_EMAIL === "true" && typeof scenarioHeader === "string"
+      ? scenarioHeader
+      : undefined;
+
   try {
-    await userService.updateUserPassword(request.body);
+    await userService.updateUserPassword(request.body, scenario);
     return reply.status(200).send({ message: "Senha atualizada com sucesso" });
   } catch (error) {
     return handleError(error, reply);

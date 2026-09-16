@@ -208,7 +208,7 @@ async function updateUser(userId: string, data: Partial<CadastreUser>) {
   }
 }
 
-async function updateUserPassword(data: UpdateUserPasswordProps) {
+async function updateUserPassword(data: UpdateUserPasswordProps, scenario?: string) {
   await schemaUserUpdatePassword.validateAsync(data);
   // Extrair email e senha fornecida do corpo da requisição
   const { email, newPassword, recoveryCode } = data;
@@ -219,6 +219,7 @@ async function updateUserPassword(data: UpdateUserPasswordProps) {
   await validateRecoveryCode({
     userEmail: email,
     recoveryCode,
+    scenario,
   });
 
   try {
@@ -247,13 +248,23 @@ async function updateUserPassword(data: UpdateUserPasswordProps) {
 async function validateRecoveryCode({
   userEmail,
   recoveryCode,
-}: CodeValidationProps): Promise<void> {
+  scenario
+}: CodeValidationProps & { scenario?: string }): Promise<void> {
   // Realiza a chamada para a API do emailService
   try {
-    await axios.post(`${emailServiceUrl}/validate-recovery-code`, {
-      userEmail,
-      recoveryCode,
-    });
+    await axios.post(`
+      ${emailServiceUrl}/validate-recovery-code`,
+      {
+        userEmail,
+        recoveryCode,
+      },
+      scenario
+        ? {
+          headers: {
+            "x-mock-scenario": scenario,
+          },
+        }
+        : {});
   } catch (error) {
     handleAxiosError(error);
   }
