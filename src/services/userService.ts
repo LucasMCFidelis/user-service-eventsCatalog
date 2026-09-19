@@ -23,7 +23,7 @@ import { schemaUserCredentials } from "../schemas/schemaUserCredentials.js";
 const emailServiceUrl = resolveServiceUrl("EMAIL");
 const authServiceUrl = resolveServiceUrl("AUTH");
 
-async function createUser(data: CadastreUser) {
+async function createUser(data: CadastreUser, scenario?: string) {
   const { firstName, lastName, email, phoneNumber, password } = data;
   console.log(data);
 
@@ -76,7 +76,13 @@ async function createUser(data: CadastreUser) {
     const response = await axios.post(`${authServiceUrl}/login`, {
       userEmail: email,
       passwordProvided: password,
-    });
+    }, scenario
+      ? {
+        headers: {
+          "x-mock-scenario": scenario,
+        },
+      }
+      : {});
     return {
       userId: newUser.userId,
       firstName: newUser.firstName,

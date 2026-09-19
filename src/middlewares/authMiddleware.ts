@@ -14,6 +14,13 @@ export async function authMiddleware(
 
   const token = authorizationHeader.replace("Bearer ", "");
 
+  const scenarioHeader = request.headers["x-mock-scenario"];
+
+  const scenario =
+    process.env.ACTIVE_MOCK === "true" && typeof scenarioHeader === "string"
+      ? scenarioHeader
+      : undefined;
+
   try {
     // Envia o token para o serviço de autenticação
     const response = await axios.post(
@@ -22,13 +29,14 @@ export async function authMiddleware(
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "x-mock-scenario": scenario,
         },
       }
     );
 
     // Validação bem-sucedida: anexa os dados do usuário ao request
     request.user = response.data.decoded;
-    
+
   } catch (error) {
     handleAxiosError(error)
   }
