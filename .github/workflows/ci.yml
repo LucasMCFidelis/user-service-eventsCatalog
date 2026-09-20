@@ -85,7 +85,6 @@ jobs:
       - name: Start userService
         env:
           NODE_ENV: development
-          USER_SERVICE_URL_DEV: http://localhost:3333
           DATABASE_URL_USER: postgresql://test:test@localhost:5432/user_test
           AUTH_SERVICE_URL_DEV: http://localhost:8080/auth
           EMAIL_SERVICE_URL_DEV: http://localhost:8089/emails
@@ -109,7 +108,9 @@ jobs:
             --reporters cli,htmlextra --reporter-htmlextra-export relatorio.html
       
       - name: Save report html to artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-newman
           path: relatorio.html
+          if-no-files-found: warn
