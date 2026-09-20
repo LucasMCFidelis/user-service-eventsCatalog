@@ -66,7 +66,7 @@ jobs:
       - name: Start emailService mock
         run: |
           docker run -d \
-            -p 8090:8080 \
+            -p 8089:8080 \
             -v ${{ github.workspace }}/email-mock/wiremock:/home/wiremock \
             wiremock/wiremock
 
@@ -88,7 +88,7 @@ jobs:
           USER_SERVICE_URL_DEV: http://localhost:3333
           DATABASE_URL_USER: postgresql://test:test@localhost:5432/user_test
           AUTH_SERVICE_URL_DEV: http://localhost:8080/auth
-          EMAIL_SERVICE_URL_DEV: http://localhost:8090/emails
+          EMAIL_SERVICE_URL_DEV: http://localhost:8089/emails
           ACTIVE_MOCK: "true"
         run: |
           npm run start:dev &
