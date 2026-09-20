@@ -1,0 +1,115 @@
+name: UserService CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: user_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+
+    steps:
+      # 1️⃣ Checkout userService
+      - name: Checkout userService
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build userService
+        run: npm run build
+
+      # 2️⃣ Checkout collections + WireMock mappings
+      - name: Checkout API tests
+        uses: actions/checkout@v4
+        with:
+          repository: LucasMCFidelis/collectionTestApiUserService
+          path: api-tests
+
+      - name: Checkout mock authService
+        uses: actions/checkout@v4
+        with:
+          repository: LucasMCFidelis/collectionTestApiAuthService
+          path: auth-mock
+
+      - name: Checkout mock emailService
+        uses: actions/checkout@v4
+        with:
+          repository: LucasMCFidelis/collectionTestApiEmailService
+          path: email-mock
+
+      # 3️⃣ Subir containers com WireMock (authService e emailService)
+      - name: Start authService mock
+        run: |
+          docker run -d \
+            -p 8080:8080 \
+            -v ${{ github.workspace }}/auth-mock/wiremock:/home/wiremock \
+            wiremock/wiremock
+
+      - name: Start emailService mock
+        run: |
+          docker run -d \
+            -p 8090:8080 \
+            -v ${{ github.workspace }}/email-mock/wiremock:/home/wiremock \
+            wiremock/wiremock
+
+      # 4️⃣ Aplicar migrations e popular o banco de dados
+      - name: Run migrations
+        env:
+          DATABASE_URL_USER: postgresql://test:test@localhost:5432/user_test
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_DATA: ${{ secrets.ADMIN_DATA }}
+          USER_ROLES: ${{ secrets.USER_ROLES }}
+        run: |
+          npx prisma migrate deploy &
+          npx prisma db seed
+
+      # 5️⃣ Subir userService
+      - name: Start userService
+        env:
+          NODE_ENV: development
+          USER_SERVICE_URL_DEV: http://localhost:3333
+          DATABASE_URL_USER: postgresql://test:test@localhost:5432/user_test
+          AUTH_SERVICE_URL_DEV: http://localhost:8080/auth
+          EMAIL_SERVICE_URL_DEV: http://localhost:8090/emails
+          ACTIVE_MOCK: "true"
+        run: |
+          npm run start:dev &
+          sleep 5
+
+      # 6️⃣ Rodar testes Postman
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Install Newman reporter HTML
+        run: npm install -g newman-reporter-htmlextra
+
+      - name: Run API tests
+        run: |
+          newman run \
+            api-tests/postman/collections/user-service.postman_collection.json \
+            -e api-tests/postman/environments/local-mock.environment.json \
+            --reporters cli,htmlextra --reporter-htmlextra-export relatorio.html
+      
+      - name: Save report html to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-newman
+          path: relatorio.html
