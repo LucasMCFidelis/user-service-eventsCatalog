@@ -67,6 +67,18 @@ services:
       ACTIVE_MOCK: "true"
       START_SCRIPT: "start:dev"
     ports: ["8081:8080"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(8080, '127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
     depends_on:
       migrate-test: { condition: service_completed_successfully }
       auth-service-mock: { condition: service_started }
@@ -94,6 +106,7 @@ services:
         aliases: [email-service]
 
   tests:
+    profiles: [test]
     build:
       context: ${API_TESTS_GIT:-https://github.com/LucasMCFidelis/collectionTestApiUserService.git#main}
       dockerfile: docker/tests-runner.Dockerfile
