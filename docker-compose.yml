@@ -1,0 +1,116 @@
+name: user-service
+
+# Modos (via profiles):
+#   test: docker compose --profile test up --build --exit-code-from tests   (o mesmo comando roda na CI)
+#
+# Convenção (igual nos 3 repos): app-* e db-* = ESTE serviço; o resto = dependências.
+# Todo serviço/mock responde pelo mesmo hostname em qualquer modo
+# (user-service, auth-service, email-service). Porta interna de todos: 8080.
+
+x-postgres: &postgres
+  image: postgres:15-alpine
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+    interval: 5s
+    timeout: 3s
+    retries: 10
+
+x-own-db-env: &own-db-env
+  POSTGRES_DB: ${DB_NAME:-user_test}
+  POSTGRES_USER: ${DB_USER:-test}
+  POSTGRES_PASSWORD: ${DB_PASSWORD:-test}
+
+x-app-env: &app-env
+  DATABASE_URL_USER: postgresql://${DB_USER:-test}:${DB_PASSWORD:-test}@user-db:5432/${DB_NAME:-user_test}
+  AUTH_SERVICE_URL_DEV: http://auth-service:8080/auth
+  EMAIL_SERVICE_URL_DEV: http://email-service:8080/emails
+
+x-seed-env: &seed-env
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+  ADMIN_DATA: ${ADMIN_DATA:-}
+  USER_ROLES: ${USER_ROLES:-}
+
+services:
+  # ============================ TEST ============================
+  # user-service REAL (mesma imagem de prod) + banco descartável.
+  # authService/emailService = WireMock. Testes = Newman (coleção em outro repo).
+  db-test:
+    <<: *postgres
+    profiles: [test]
+    environment: *own-db-env
+    tmpfs: [/var/lib/postgresql/data]
+    networks:
+      default:
+        aliases: [user-db]
+
+  # Job único: migrations e seed em sequência (sem corrida) antes do app subir.
+  migrate-test:
+    profiles: [test]
+    build:
+      context: .
+      target: migrate
+    environment:
+      <<: [*app-env, *seed-env]
+    depends_on:
+      db-test: { condition: service_healthy }
+
+  app-test:
+    profiles: [test]
+    build:
+      context: .
+      target: prod
+    environment:
+      <<: *app-env
+      # Hoje a CI roda com NODE_ENV=development (o app escolhe *_DEV por causa disso).
+      # Ideal: o app ler AUTH_SERVICE_URL/EMAIL_SERVICE_URL sem depender de NODE_ENV e remover esta linha.
+      NODE_ENV: development
+      ACTIVE_MOCK: "true"
+      START_SCRIPT: "start:dev"
+    ports: ["8081:8080"]
+    depends_on:
+      migrate-test: { condition: service_completed_successfully }
+      auth-service-mock: { condition: service_started }
+      email-service-mock: { condition: service_started }
+    networks:
+      default:
+        aliases: [user-service]
+
+  # Repos collectionTestApi*Service precisam de um Dockerfile na raiz (ver collection-repos-exemplo/).
+  auth-service-mock:
+    profiles: [test]
+    build:
+      context: ${AUTH_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiAuthService.git#main}
+      dockerfile: docker/mock.Dockerfile
+    networks:
+      default:
+        aliases: [auth-service]
+
+  email-service-mock:
+    profiles: [test]
+    build:
+      context: ${EMAIL_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiEmailService.git#main}
+    networks:
+      default:
+        aliases: [email-service]
+
+  tests:
+    build:
+      context: ${API_TESTS_GIT:-https://github.com/LucasMCFidelis/collectionTestApiUserService.git#main}
+      dockerfile: docker/tests-runner.Dockerfile
+    command:
+      - run
+      - postman/collections/user-service.postman_collection.json
+      - -e
+      - postman/environments/ci.environment.json
+      - -r
+      - cli,htmlextra
+      - --reporter-htmlextra-export
+      - reports/relatorio.html
+    volumes:
+      - ./reports:/etc/newman/reports
+    depends_on:
+      app-test: { condition: service_healthy }
+
+volumes:
+  user-db-data:
+  email-db-data:
