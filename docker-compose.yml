@@ -43,7 +43,6 @@ services:
       default:
         aliases: [user-db]
 
-  # Job único: migrations e seed em sequência (sem corrida) antes do app subir.
   migrate-test:
     profiles: [test]
     build:
@@ -61,8 +60,6 @@ services:
       target: prod
     environment:
       <<: *app-env
-      # Hoje a CI roda com NODE_ENV=development (o app escolhe *_DEV por causa disso).
-      # Ideal: o app ler AUTH_SERVICE_URL/EMAIL_SERVICE_URL sem depender de NODE_ENV e remover esta linha.
       NODE_ENV: development
       ACTIVE_MOCK: "true"
       START_SCRIPT: "start:dev"
@@ -87,12 +84,12 @@ services:
       default:
         aliases: [user-service]
 
-  # Repos collectionTestApi*Service precisam de um Dockerfile na raiz (ver collection-repos-exemplo/).
   auth-service-mock:
     profiles: [test]
     build:
       context: ${AUTH_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiAuthService.git#main}
       dockerfile: docker/mock.Dockerfile
+    ports: ["8082:8080"]
     networks:
       default:
         aliases: [auth-service]
@@ -102,6 +99,7 @@ services:
     build:
       context: ${EMAIL_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiEmailService.git#main}
       dockerfile: docker/mock.Dockerfile
+    ports: ["8083:8080"]
     networks:
       default:
         aliases: [email-service]
