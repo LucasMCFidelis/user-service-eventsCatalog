@@ -101,6 +101,7 @@ services:
     profiles: [test]
     build:
       context: ${EMAIL_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiEmailService.git#main}
+      dockerfile: docker/mock.Dockerfile
     networks:
       default:
         aliases: [email-service]
