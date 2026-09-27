@@ -1,7 +1,7 @@
 name: user-service
 
 # Modos (via profiles):
-#   test: docker compose --profile test up --build --exit-code-from tests   (o mesmo comando roda na CI)
+#   test: docker compose --profile test up -d --build
 #
 # Convenção (igual nos 3 repos): app-* e db-* = ESTE serviço; o resto = dependências.
 # Todo serviço/mock responde pelo mesmo hostname em qualquer modo
