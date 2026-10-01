@@ -14,7 +14,7 @@ export async function authMiddleware(
 
   const token = authorizationHeader.replace("Bearer ", "");
 
-  const scenarioHeader = request.headers["x-mock-scenario"];
+  const scenarioHeader = request.headers["x-mock-auth-scenario"];
 
   const scenario =
     process.env.ACTIVE_MOCK === "true" && typeof scenarioHeader === "string"

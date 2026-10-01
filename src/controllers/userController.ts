@@ -9,7 +9,7 @@ export async function createUserRoute(
   request: FastifyRequest<{ Body: CadastreUser }>,
   reply: FastifyReply
 ) {
-  const scenarioHeader = request.headers["x-mock-scenario"];
+  const scenarioHeader = request.headers["x-mock-auth-scenario"];
 
   const scenario =
     process.env.ACTIVE_MOCK === "true" && typeof scenarioHeader === "string"
@@ -83,7 +83,7 @@ export async function updateUserPasswordRoute(
   }>,
   reply: FastifyReply
 ) {
-  const scenarioHeader = request.headers["x-mock-scenario"];
+  const scenarioHeader = request.headers["x-mock-auth-scenario"];
 
   const scenario =
     process.env.ACTIVE_MOCK === "true" && typeof scenarioHeader === "string"

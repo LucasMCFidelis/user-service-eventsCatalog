@@ -79,7 +79,7 @@ async function createUser(data: CadastreUser, scenario?: string) {
     }, scenario
       ? {
         headers: {
-          "x-mock-scenario": scenario,
+          "x-mock-auth-scenario": scenario,
         },
       }
       : {});
@@ -267,7 +267,7 @@ async function validateRecoveryCode({
       scenario
         ? {
           headers: {
-            "x-mock-scenario": scenario,
+            "x-mock-email-scenario": scenario,
           },
         }
         : {});

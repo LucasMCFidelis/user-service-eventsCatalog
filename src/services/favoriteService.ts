@@ -8,15 +8,17 @@ import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
 
 const eventServiceUrl = resolveServiceUrl("EVENT")
 
-async function createFavorite(userFavoriteId: string, eventFavoriteId: string) {
+async function createFavorite(userFavoriteId: string, eventFavoriteId: string, scenario?: string) {
   Promise.all([
-    await schemaId.validateAsync({id: userFavoriteId}),
-    await schemaId.validateAsync({id: eventFavoriteId})
+    await schemaId.validateAsync({ id: userFavoriteId }),
+    await schemaId.validateAsync({ id: eventFavoriteId })
   ])
 
   try {
     const response = await axios.get(
-      `${eventServiceUrl}/events/${eventFavoriteId}`
+      `${eventServiceUrl}/events/${eventFavoriteId}`,
+      scenario ?
+        { headers: { "X-Scenario": scenario } } : {}
     );
   } catch (error) {
     handleAxiosError(error);
@@ -107,7 +109,7 @@ async function getFavoriteById(favoriteId: string) {
   try {
     favorite = await prisma.favorite.findUnique({ where: { favoriteId } });
     console.log(favorite);
-    
+
   } catch (error) {
     console.error("Erro ao buscar favorito pelo id");
     throw {
@@ -135,7 +137,7 @@ async function getFavoriteById(favoriteId: string) {
   };
 }
 
-async function updateFavorite(favoriteId: string, data: any) {}
+async function updateFavorite(favoriteId: string, data: any) { }
 
 async function deleteFavorite(favoriteId: string) {
   await getFavoriteById(favoriteId);
