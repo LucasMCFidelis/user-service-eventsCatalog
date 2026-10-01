@@ -104,6 +104,16 @@ services:
       default:
         aliases: [email-service]
 
+  event-service-mock:
+    profiles: [test]
+    build:
+      context: ${EVENT_MOCK_GIT:-https://github.com/LucasMCFidelis/collectionTestApiEventService.git#main}
+      dockerfile: docker/mock.Dockerfile
+    ports: ["8084:8080"]
+    networks:
+      default:
+        aliases: [event-service]
+
   tests:
     profiles: [test]
     build:
