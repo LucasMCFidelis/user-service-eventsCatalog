@@ -24,6 +24,7 @@ x-app-env: &app-env
   DATABASE_URL_USER: postgresql://${DB_USER:-test}:${DB_PASSWORD:-test}@user-db:5432/${DB_NAME:-user_test}
   AUTH_SERVICE_URL_DEV: http://auth-service:8080/auth
   EMAIL_SERVICE_URL_DEV: http://email-service:8080/emails
+  EVENT_SERVICE_URL_DEV: http://event-service:8080/events
 
 x-seed-env: &seed-env
   ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}

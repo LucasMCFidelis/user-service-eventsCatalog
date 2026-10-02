@@ -1,12 +1,7 @@
 import { schemaId } from "../schemas/schemaId.js";
 import { prisma } from "../utils/db/prisma.js";
 import { userService } from "./userService.js";
-import axios from "axios";
-import { handleAxiosError } from "../utils/handlers/handleAxiosError.js";
 import { getEventById } from "../utils/db/getEventById.js";
-import { resolveServiceUrl } from "../utils/resolveServiceUrl.js";
-
-const eventServiceUrl = resolveServiceUrl("EVENT")
 
 async function createFavorite(userFavoriteId: string, eventFavoriteId: string, scenario?: string) {
   Promise.all([
@@ -14,15 +9,7 @@ async function createFavorite(userFavoriteId: string, eventFavoriteId: string, s
     await schemaId.validateAsync({ id: eventFavoriteId })
   ])
 
-  try {
-    const response = await axios.get(
-      `${eventServiceUrl}/events/${eventFavoriteId}`,
-      scenario ?
-        { headers: { "X-Scenario": scenario } } : {}
-    );
-  } catch (error) {
-    handleAxiosError(error);
-  }
+  await getEventById(eventFavoriteId, scenario);
 
   let newFavorite;
   try {
@@ -44,7 +31,7 @@ async function createFavorite(userFavoriteId: string, eventFavoriteId: string, s
   return newFavorite;
 }
 
-async function listFavorites(userId: string) {
+async function listFavorites(userId: string, scenario?: string) {
   let user;
   try {
     user = await userService.getUserByIdOrEmail({ userId }, true);
@@ -70,7 +57,7 @@ async function listFavorites(userId: string) {
   try {
     const favoritesWithEvents = await Promise.all(
       eventFavorites.map(async (favorite) => {
-        const event = await getEventById(favorite.eventFavoriteId);
+        const event = await getEventById(favorite.eventFavoriteId, scenario);
         if (!event) return null;
 
         return {
@@ -102,7 +89,7 @@ async function listFavorites(userId: string) {
   }
 }
 
-async function getFavoriteById(favoriteId: string) {
+async function getFavoriteById(favoriteId: string, scenario?: string) {
   await schemaId.validateAsync({ id: favoriteId });
 
   let favorite;
@@ -127,7 +114,7 @@ async function getFavoriteById(favoriteId: string) {
     };
   }
 
-  const eventFavorite = await getEventById(favorite.eventFavoriteId);
+  const eventFavorite = await getEventById(favorite.eventFavoriteId, scenario);
 
   return {
     favoriteId: favorite.favoriteId,
@@ -139,8 +126,8 @@ async function getFavoriteById(favoriteId: string) {
 
 async function updateFavorite(favoriteId: string, data: any) { }
 
-async function deleteFavorite(favoriteId: string) {
-  await getFavoriteById(favoriteId);
+async function deleteFavorite(favoriteId: string, scenario?: string) {
+  await getFavoriteById(favoriteId, scenario);
 
   try {
     await prisma.favorite.delete({ where: { favoriteId } });
