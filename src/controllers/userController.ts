@@ -83,7 +83,7 @@ export async function updateUserPasswordRoute(
   }>,
   reply: FastifyReply
 ) {
-  const scenarioHeader = request.headers["x-mock-auth-scenario"];
+  const scenarioHeader = request.headers["x-mock-email-scenario"];
 
   const scenario =
     process.env.ACTIVE_MOCK === "true" && typeof scenarioHeader === "string"
